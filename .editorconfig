@@ -1,0 +1,12 @@
+﻿[*]
+indent_style = space
+
+[*.cs]
+
+# CA2227: Collection properties should be read only
+dotnet_diagnostic.CA2227.severity = none
+
+# IDE0008: Use explicit type
+csharp_style_var_elsewhere = true
+
+csharp_style_namespace_declarations= file_scoped:warning
