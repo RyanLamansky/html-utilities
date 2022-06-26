@@ -26,4 +26,18 @@ public static class CodePointTests
     {
         Assert.Equal(expected, UTF8.GetString(CodePoint.EncodeUtf8(value).ToArray()));
     }
+
+    public static readonly object[][] Utf16TestCases = new object[][] {
+        new object[] { "$", new int[] { 0x0024 } },
+        new object[] { "€", new int[] { 0x20AC } },
+        new object[] { "𐐷", new int[] { 0x10437 } },
+        new object[] { "𤭢", new int[] { 0x24B62 } },
+    };
+
+    [Theory]
+    [MemberData(nameof(Utf16TestCases))]
+    public static void DecodeUtf16FromEnumerableCharacters(string value, int[] expected)
+    {
+        Assert.Equal(expected, CodePoint.DecodeUtf16(value).ToArray());
+    }
 }

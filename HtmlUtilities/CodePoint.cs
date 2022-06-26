@@ -19,7 +19,7 @@ public static class CodePoint
         while (enumerator.MoveNext())
         {
             var current = enumerator.Current;
-            
+
             if (current <= 0x7f)
             {
                 yield return current;
@@ -78,6 +78,34 @@ public static class CodePoint
     }
 
     /// <summary>
+    /// Decodes a UTF-16 sequence into Unicode code points.
+    /// </summary>
+    /// <param name="source">The UTF-16 sequence.</param>
+    /// <returns>The sequence of code points.</returns>
+    public static IEnumerable<int> DecodeUtf16(IEnumerable<char> source)
+    {
+        using var enumerator = source.GetEnumerator();
+
+        while (enumerator.MoveNext())
+        {
+            var high = (int)enumerator.Current;
+
+            if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
+            {
+                yield return high;
+                continue;
+            }
+
+            if (!enumerator.MoveNext())
+                yield break;
+
+            var low = (int)enumerator.Current;
+
+            yield return (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+        }
+    }
+
+    /// <summary>
     /// Encodes a sequence of Unicode code points into UTF-8 bytes. Invalid code points are skipped.
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
@@ -89,7 +117,7 @@ public static class CodePoint
         while (enumerator.MoveNext())
         {
             var current = enumerator.Current;
-            
+
             if (current <= 0x7F)
                 yield return (byte)current;
             else if (current <= 0x7FF)
