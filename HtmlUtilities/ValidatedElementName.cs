@@ -14,42 +14,38 @@ public readonly struct ValidatedElementName
     /// </summary>
     /// <param name="name">The UTF-8 bytes of the name to validate.</param>
     /// <exception cref="Exception"></exception>
-    public ValidatedElementName(ReadOnlySpan<byte> name)
+    public ValidatedElementName(string name)
     {
-        if (!IsValid(name))
-            throw new Exception();
+        ArgumentNullException.ThrowIfNull(nameof(name));
 
-        this.value = name.ToArray(); // Copies the source so that it can't be changed after validation.
+        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).ToArray();
     }
 
-    /// <summary>
-    /// Determines whether the provided element name is valid acccording to HTML5 rules.
-    /// </summary>
-    /// <param name="name">The name to validate.</param>
-    /// <returns>True if <paramref name="name"/> is a valid element name, otherwise false.</returns>
-    public static bool IsValid(ReadOnlySpan<byte> name)
+    private static IEnumerable<CodePoint> Validate(IEnumerable<CodePoint> name)
     {
-        // https://html.spec.whatwg.org/#parsing
-        // https://html.spec.whatwg.org/#syntax-start-tag
+        // https://html.spec.whatwg.org/#syntax-tag-name
         // Summary of above:
         // - Must be at least one charcter
         // - First character must be ASCII alpha
         // - Rest must be ASCII alpha or ASCII digit
 
-        var enumerator = name.GetEnumerator();
-        if (!enumerator.MoveNext())
-            return false;
+        using var enumerator = name.GetEnumerator();
 
-        if ((char)enumerator.Current is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z'))
-            return false;
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
+
+        if (enumerator.Current.Value is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z'))
+            throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
+
+        yield return enumerator.Current;
 
         while (enumerator.MoveNext())
         {
-            if ((char)enumerator.Current is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9'))
-                return false;
-        }
+            if (enumerator.Current.Value is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9'))
+                throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
 
-        return true;
+            yield return enumerator.Current;
+        }
     }
 
     /// <summary>
@@ -57,11 +53,4 @@ public readonly struct ValidatedElementName
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
     public override string ToString() => Encoding.UTF8.GetString(this.value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
-    /// </summary>
-    /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="Exception"></exception>
-    public static implicit operator ValidatedElementName(ReadOnlySpan<byte> name) => new(name);
 }

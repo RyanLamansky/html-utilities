@@ -13,7 +13,7 @@ public static class ValidatedElementNameTests
     [InlineData("🙂")]
     public static void InvalidElementNameIsBlocked(string name)
     {
-        _ = Assert.Throws<Exception>(() => new ValidatedElementName(System.Text.Encoding.UTF8.GetBytes(name)));
+        _ = Assert.Throws<ArgumentException>(() => new ValidatedElementName(name));
     }
 
     [Theory]
@@ -24,6 +24,6 @@ public static class ValidatedElementNameTests
     [InlineData("h1")]
     public static void ValidElementNameIsAccepted(string name)
     {
-        _ = new ValidatedElementName(System.Text.Encoding.UTF8.GetBytes(name));
+        _ = new ValidatedElementName(name);
     }
 }
