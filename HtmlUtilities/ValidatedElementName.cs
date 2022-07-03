@@ -23,7 +23,7 @@ public readonly struct ValidatedElementName
     }
 
     /// <summary>
-    /// Determines whether the provided--potentially custom--element name is valid acccording to HTML5 rules.
+    /// Determines whether the provided element name is valid acccording to HTML5 rules.
     /// </summary>
     /// <param name="name">The name to validate.</param>
     /// <returns>True if <paramref name="name"/> is a valid element name, otherwise false.</returns>

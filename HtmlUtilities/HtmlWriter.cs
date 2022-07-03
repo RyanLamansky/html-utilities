@@ -28,9 +28,11 @@ public readonly ref struct HtmlWriter
     /// <param name="element">A validated HTML element.</param>
     public void WriteElement(ValidatedElementName element)
     {
-        this.WriteElementCommon(element);
-        
         var writer = this.writer;
+
+        writer.Write("<"u8);
+        writer.Write(element.value);
+        writer.Write(">"u8);
 
         writer.Write("</"u8);
         writer.Write(element.value);
@@ -60,11 +62,6 @@ public readonly ref struct HtmlWriter
     /// </summary>
     /// <param name="element">A validated HTML element.</param>
     public void WriteElementSelfClosing(ValidatedElementName element)
-    {
-        this.WriteElementCommon(element);
-    }
-
-    private void WriteElementCommon(ValidatedElementName element)
     {
         var writer = this.writer;
 

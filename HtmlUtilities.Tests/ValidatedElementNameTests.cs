@@ -1,4 +1,4 @@
-﻿namespace HtmlUtilities.Tests;
+﻿namespace HtmlUtilities;
 
 public static class ValidatedElementNameTests
 {

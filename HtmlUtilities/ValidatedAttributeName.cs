@@ -23,7 +23,16 @@ public readonly struct ValidatedAttributeName
     }
 
     /// <summary>
-    /// Determines whether the provided--potentially custom--attribute name is valid acccording to HTML5 rules.
+    /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
+    /// </summary>
+    /// <param name="name">The name to validate.</param>
+    /// <exception cref="Exception"></exception>
+    public ValidatedAttributeName(string name) : this(Encoding.UTF8.GetBytes(name))
+    {
+    }
+
+    /// <summary>
+    /// Determines whether the provided attribute name is valid acccording to HTML5 rules.
     /// </summary>
     /// <param name="name">The name to validate.</param>
     /// <returns>True if <paramref name="name"/> is a valid attribute name, otherwise false.</returns>
