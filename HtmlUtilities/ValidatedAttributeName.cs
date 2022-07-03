@@ -12,54 +12,87 @@ public readonly struct ValidatedAttributeName
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
     /// </summary>
-    /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="Exception"></exception>
-    public ValidatedAttributeName(ReadOnlySpan<byte> name)
+    /// <param name="name">The name to validate.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public ValidatedAttributeName(string name)
     {
-        if (!IsValid(name))
-            throw new Exception();
+        ArgumentNullException.ThrowIfNull(name, nameof(name));
+        if (name.Length == 0)
+            throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
-        this.value = name.ToArray(); // Copies the source so that it can't be changed after validation.
+        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).ToArray();
     }
 
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
-    /// </summary>
-    /// <param name="name">The name to validate.</param>
-    /// <exception cref="Exception"></exception>
-    public ValidatedAttributeName(string name) : this(Encoding.UTF8.GetBytes(name))
-    {
-    }
-
-    /// <summary>
-    /// Determines whether the provided attribute name is valid acccording to HTML5 rules.
-    /// </summary>
-    /// <param name="name">The name to validate.</param>
-    /// <returns>True if <paramref name="name"/> is a valid attribute name, otherwise false.</returns>
-    public static bool IsValid(ReadOnlySpan<byte> name)
+    private static IEnumerable<CodePoint> Validate(IEnumerable<CodePoint> name)
     {
         // https://html.spec.whatwg.org/#attributes-2
 
-        var enumerator = name.GetEnumerator();
-        if (!enumerator.MoveNext())
-            return false;
-
-        do
+        foreach (var cp in name)
         {
-            var c = (char)enumerator.Current;
-            // Control codes and specific characters
-            if (c is >= '\u0000' and <= '\u001F' or >= '\u007F' and <= '\u009F' or ' ' or '"' or '\'' or '>' or '/' or '=')
-                return false;
+            switch (cp.Value)
+            {
+                default:
+                    yield return cp;
+                    continue;
+                case '&':
+                    yield return '&';
+                    yield return 'a';
+                    yield return 'm';
+                    yield return 'p';
+                    yield return ';';
+                    continue;
 
-            // https://infra.spec.whatwg.org/#noncharacter
-            // Double-byte non-characters.
-            if (c is >= '\uFDD0' and <= '\uFDEF' or '\uFFFE' or '\uFFFF')
-                return false;
+                case >= 0x0000 and <= 0x001F: // C0 Control
+                case >= 0x007F and <= 0x009F: // Control
 
-            // TODO: Block 3-or-more byte non-characters
-        } while (enumerator.MoveNext());
+                // Specific characters
+                case ' ':
+                case '"':
+                case '\'':
+                case '>':
+                case '/':
+                case '=':
 
-        return true;
+                // Noncharacters 
+                case >= 0xFDD0 and <= 0xFDEF:
+                case 0xFFFE:
+                case 0xFFFF:
+                case 0x1FFFE:
+                case 0x1FFFF:
+                case 0x2FFFE:
+                case 0x2FFFF:
+                case 0x3FFFE:
+                case 0x3FFFF:
+                case 0x4FFFE:
+                case 0x4FFFF:
+                case 0x5FFFE:
+                case 0x5FFFF:
+                case 0x6FFFE:
+                case 0x6FFFF:
+                case 0x7FFFE:
+                case 0x7FFFF:
+                case 0x8FFFE:
+                case 0x8FFFF:
+                case 0x9FFFE:
+                case 0x9FFFF:
+                case 0xAFFFE:
+                case 0xAFFFF:
+                case 0xBFFFE:
+                case 0xBFFFF:
+                case 0xCFFFE:
+                case 0xCFFFF:
+                case 0xDFFFE:
+                case 0xDFFFF:
+                case 0xEFFFE:
+                case 0xEFFFF:
+                case 0xFFFFE:
+                case 0xFFFFF:
+                case 0x10FFFE:
+                case 0x10FFFF:
+                    throw new ArgumentException($"name has an invalid character, code point {cp.Value}", nameof(name));
+            }
+        }
     }
 
     /// <summary>
@@ -67,11 +100,4 @@ public readonly struct ValidatedAttributeName
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
     public override string ToString() => Encoding.UTF8.GetString(this.value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
-    /// </summary>
-    /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="Exception"></exception>
-    public static implicit operator ValidatedAttributeName(ReadOnlySpan<byte> name) => new(name);
 }
