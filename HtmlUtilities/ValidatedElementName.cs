@@ -13,10 +13,10 @@ public readonly struct ValidatedElementName
     /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
     /// </summary>
     /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="Exception"></exception>
+    /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public ValidatedElementName(string name)
     {
-        ArgumentNullException.ThrowIfNull(nameof(name));
+        ArgumentNullException.ThrowIfNull(name);
 
         this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).ToArray();
     }

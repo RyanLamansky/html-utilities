@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Text;
 
 namespace HtmlUtilities;
 
@@ -8,133 +9,100 @@ namespace HtmlUtilities;
 /// <remarks>UTF-8 is always used.</remarks>
 public readonly ref struct HtmlWriter
 {
+    private static readonly byte[] doctype = Encoding.UTF8.GetBytes("<!DOCTYPE html>");
+    private static readonly ValidatedElement html = new("html");
+
     private readonly IBufferWriter<byte> writer;
 
     private HtmlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
 
-        writer.Write("<!DOCTYPE html>"u8);
+        writer.Write(doctype);
     }
 
     /// <summary>
-    /// Writes an HTML document to the provided buffer writer and callbacks.
+    /// Writes an HTML document using the provided buffer writer and callbacks.
     /// </summary>
     /// <param name="writer">Receives the written bytes.</param>
     /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
     /// <param name="children">If provided, writes child elements.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="writer"/> and <paramref name="children"/> cannot be null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
     public static void WriteDocument(IBufferWriter<byte> writer, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
     {
-        var htmlWriter = new HtmlWriter(writer);
-        htmlWriter.WriteElement("html", attributes, children);
+        new HtmlWriter(writer).WriteElement(html, attributes, children);
     }
 
     /// <summary>
-    /// Writes a validated element.
+    /// Writes a validated tag element.
     /// </summary>
-    /// <param name="name">The validated HTML element name.</param>
-    public void WriteElement(ValidatedElementName name)
+    /// <param name="element">The validated HTML element.</param>
+    public void WriteElement(ValidatedElement element)
     {
         var writer = this.writer;
 
-        writer.Write("<"u8);
-        writer.Write(name.value);
-        writer.Write("></"u8);
-        writer.Write(name.value);
-        writer.Write(">"u8);
+        writer.Write(element.start);
+        writer.Write(element.end);
     }
 
     /// <summary>
-    /// Validates and writes an element.
+    /// Writes a validated element with optional attributes and child content.
     /// </summary>
-    /// <param name="name">The unvalidated HTML element name.</param>
-    public void WriteElement(string name) => WriteElement(new ValidatedElementName(name));
-
-    /// <summary>
-    /// Writes a validated element with its associated attributes and children.
-    /// </summary>
-    /// <param name="name">The validated HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
+    /// <param name="element">The validated HTML element.</param>
+    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
-    public void WriteElement(ValidatedElementName name, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
+    public void WriteElement(ValidatedElement element, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
     {
         var writer = this.writer;
-        writer.Write("<"u8);
-        writer.Write(name.value);
 
-        if (attributes is not null)
+        if (attributes is null)
+            writer.Write(element.start);
+        else
+        {
+            writer.Write(element.start.AsSpan(0, element.start.Length - 1));
+
             attributes(new AttributeWriter(this.writer));
 
-        writer.Write(">"u8);
+            Span<byte> chars = stackalloc byte[1];
+            chars[0] = (byte)'>';
+            writer.Write(chars);
+        }
 
         if (children is not null)
             children(this);
 
-        writer.Write("</"u8);
-        writer.Write(name.value);
-        writer.Write(">"u8);
+        writer.Write(element.end);
     }
-
-    /// <summary>
-    /// Writes a validated element with its associated attributes.
-    /// </summary>
-    /// <param name="name">The validated HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElement(ValidatedElementName name, WriteAttributesCallback? attributes)
-        => WriteElement(name, attributes, null);
-
-    /// <summary>
-    /// Validates and writes an element with its associated attributes.
-    /// </summary>
-    /// <param name="name">The unvalidated HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElement(string name, WriteAttributesCallback? attributes)
-        => WriteElement(new ValidatedElementName(name), attributes);
-
-    /// <summary>
-    /// Validates and writes an element with its associated attributes and children.
-    /// </summary>
-    /// <param name="name">The unvalidated HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
-    /// <param name="children">If provided, writes child elements.</param>
-    public void WriteElement(string name, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
-        => WriteElement(new ValidatedElementName(name), attributes, children);
 
     /// <summary>
     /// Writes a validated element without an end tag.
     /// </summary>
-    /// <param name="name">The validated HTML element name.</param>
+    /// <param name="element">The validated HTML element.</param>
+    public void WriteElementSelfClosing(ValidatedElement element)
+    {
+        this.writer.Write(element.start);
+    }
+
+    /// <summary>
+    /// Writes a validated element without an end tag.
+    /// </summary>
+    /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElementSelfClosing(ValidatedElementName name, WriteAttributesCallback? attributes = null)
+    public void WriteElementSelfClosing(ValidatedElement element, WriteAttributesCallback? attributes = null)
     {
         var writer = this.writer;
 
-        writer.Write("<"u8);
-        writer.Write(name.value);
+        if (attributes is null)
+            writer.Write(element.start);
+        else
+        {
+            writer.Write(element.start.AsSpan(0, element.start.Length - 1));
 
-        if (attributes is not null)
             attributes(new AttributeWriter(this.writer));
 
-        writer.Write(">"u8);
+            Span<byte> chars = stackalloc byte[1];
+            chars[0] = (byte)'>';
+            writer.Write(chars);
+        }
     }
-
-    /// <summary>
-    /// Writes a validated element without an end tag.
-    /// </summary>
-    /// <param name="name">The validated HTML element name.</param>
-    public void WriteElementSelfClosing(ValidatedElementName name) => WriteElementSelfClosing(name, null);
-
-    /// <summary>
-    ///  Validates and writes an element without an end tag.
-    /// </summary>
-    /// <param name="name">The unvalidated HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElementSelfClosing(string name, WriteAttributesCallback? attributes = null) => WriteElementSelfClosing(new ValidatedElementName(name), attributes);
-
-    /// <summary>
-    ///  Validates and writes an element without an end tag.
-    /// </summary>
-    /// <param name="name">The unvalidated HTML element name.</param>
-    public void WriteElementSelfClosing(string name) => WriteElementSelfClosing(new ValidatedElementName(name));
 }

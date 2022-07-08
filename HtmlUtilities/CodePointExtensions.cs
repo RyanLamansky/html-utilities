@@ -16,8 +16,8 @@ public static class CodePointExtensions
     /// <exception cref="ArgumentNullException">All parameters are required.</exception>
     public static StringBuilder Append(this StringBuilder destination, IEnumerable<CodePoint> source)
     {
-        ArgumentNullException.ThrowIfNull(destination, nameof(destination));
-        ArgumentNullException.ThrowIfNull(source, nameof(source));
+        ArgumentNullException.ThrowIfNull(destination);
+        ArgumentNullException.ThrowIfNull(source);
 
         foreach (var c in CodePoint.EncodeUtf16(source))
             destination.Append(c);

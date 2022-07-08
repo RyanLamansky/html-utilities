@@ -17,11 +17,11 @@ public readonly struct ValidatedAttributeName
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
     public ValidatedAttributeName(string name)
     {
-        ArgumentNullException.ThrowIfNull(name, nameof(name));
+        ArgumentNullException.ThrowIfNull(name);
         if (name.Length == 0)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
-        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).ToArray();
+        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name)).Prepend(' ')).ToArray();
     }
 
     private static IEnumerable<CodePoint> Validate(IEnumerable<CodePoint> name)

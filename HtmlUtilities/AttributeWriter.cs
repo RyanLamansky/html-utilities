@@ -24,7 +24,6 @@ public readonly ref struct AttributeWriter
     {
         var writer = this.writer;
 
-        writer.Write(" "u8);
         writer.Write(attribute.value);
     }
 
@@ -37,7 +36,6 @@ public readonly ref struct AttributeWriter
     {
         var writer = this.writer;
 
-        writer.Write(" "u8);
         writer.Write(name.value);
         writer.Write(value.value);
     }
@@ -50,7 +48,6 @@ public readonly ref struct AttributeWriter
     {
         var writer = this.writer;
 
-        writer.Write(" "u8);
         writer.Write(name.value);
     }
 
