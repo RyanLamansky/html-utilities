@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using static HtmlUtilities.CodePointInfraCategory;
+
 namespace HtmlUtilities;
 
 /// <summary>
@@ -10,7 +12,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <summary>
     /// Gets the raw Unicode code point value.
     /// </summary>
-    public readonly uint Value { get; init; }
+    public readonly uint Value { get; }
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
@@ -33,6 +35,172 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
 
         this.Value = value;
     }
+
+    // This pre-caculated lookup table provides O(1) lookup time for ASCII characters.
+    private static readonly CodePointInfraCategory[] AsciiInfraCategories = new CodePointInfraCategory[]
+    {
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | AsciiTabOrNewline | AsciiWhitespace | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | AsciiTabOrNewline | AsciiWhitespace | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | AsciiWhitespace | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | AsciiTabOrNewline | AsciiWhitespace | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
+        ScalarValue | Ascii | AsciiWhitespace | C0ControlOrSpace,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii,
+        ScalarValue | Ascii | Control,
+    };
+
+    /// <summary>
+    /// Gets the categoryies of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+    /// </summary>
+    public CodePointInfraCategory InfraCategories
+    {
+        get
+        {
+            var value = (int)Value; // int produces better CIL for using the array.
+            var categoryTable = AsciiInfraCategories;
+
+            // In normal situations, ASCII will be the most common code points used.
+            if (value < categoryTable.Length)
+                return categoryTable[value];
+
+            return NonAsciiInfraCategory((uint)value);
+        }
+    }
+
+    private static CodePointInfraCategory NonAsciiInfraCategory(uint codePoint) =>codePoint switch
+    {
+        <= 0x9F => ScalarValue | Control,
+        >= 0xD800 and <= 0xDFFF => Surrogate,
+        >= 0xFDD0 and <= 0xFDEF
+        or 0xFFFE or 0xFFFF or 0x1FFFE or 0x1FFFF or 0x2FFFE or 0x2FFFF
+        or 0x3FFFE or 0x3FFFF or 0x4FFFE or 0x4FFFF or 0x5FFFE or 0x5FFFF
+        or 0x6FFFE or 0x6FFFF or 0x7FFFE or 0x7FFFF or 0x8FFFE or 0x8FFFF
+        or 0x9FFFE or 0x9FFFF or 0xAFFFE or 0xAFFFF or 0xBFFFE or 0xBFFFF
+        or 0xCFFFE or 0xCFFFF or 0xDFFFE or 0xDFFFF or 0xEFFFE or 0xEFFFF
+        or 0xFFFFE or 0xFFFFF or 0x10FFFE or 0x10FFFF
+        => ScalarValue | NonCharacter,
+        _ => ScalarValue,
+    };
 
     /// <summary>
     /// Gets the number of bytes required to encode this code point with UTF-8.

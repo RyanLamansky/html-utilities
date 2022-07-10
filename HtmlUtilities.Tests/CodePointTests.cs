@@ -12,6 +12,91 @@ public static class CodePointTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new CodePoint(value));
     }
 
+    [Theory]
+    [InlineData(0x00, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace)]
+    [InlineData(0x09, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace
+        | CodePointInfraCategory.AsciiTabOrNewline
+        | CodePointInfraCategory.AsciiWhitespace)]
+    [InlineData(0x0A, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace
+        | CodePointInfraCategory.AsciiTabOrNewline
+        | CodePointInfraCategory.AsciiWhitespace)]
+    [InlineData(0x0C, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace
+        | CodePointInfraCategory.AsciiWhitespace)]
+    [InlineData(0x0D, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace
+        | CodePointInfraCategory.AsciiTabOrNewline
+        | CodePointInfraCategory.AsciiWhitespace)]
+    [InlineData(0x1F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control
+        | CodePointInfraCategory.C0Control
+        | CodePointInfraCategory.C0ControlOrSpace)]
+    [InlineData(' ', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.C0ControlOrSpace
+        | CodePointInfraCategory.AsciiWhitespace)]
+    [InlineData('0', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiDigit
+        | CodePointInfraCategory.AsciiUpperHexDigit
+        | CodePointInfraCategory.AsciiLowerHexDigit
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('9', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiDigit
+        | CodePointInfraCategory.AsciiUpperHexDigit
+        | CodePointInfraCategory.AsciiLowerHexDigit
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('A', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiUpperHexDigit
+        | CodePointInfraCategory.AsciiHexDigit
+        | CodePointInfraCategory.AsciiUpperAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('F', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiUpperHexDigit
+        | CodePointInfraCategory.AsciiHexDigit
+        | CodePointInfraCategory.AsciiUpperAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('Z', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiUpperAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('a', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiLowerHexDigit
+        | CodePointInfraCategory.AsciiHexDigit
+        | CodePointInfraCategory.AsciiLowerAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('f', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiLowerHexDigit
+        | CodePointInfraCategory.AsciiHexDigit
+        | CodePointInfraCategory.AsciiLowerAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData('z', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.AsciiLowerAlpha
+        | CodePointInfraCategory.AsciiAlpha
+        | CodePointInfraCategory.AsciiAlphanumeric)]
+    [InlineData(0x7F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
+        | CodePointInfraCategory.Control)]
+    [InlineData(0x9F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Control)]
+    public static void CodePointsHaveCorrectInfraCategories(int codePoint, CodePointInfraCategory categories)
+    {
+        Assert.Equal(categories, new CodePoint(codePoint).InfraCategories);
+    }
+
     public static readonly object[][] Utf8ValidTestCases = new object[][] {
         new object[] { "$", new CodePoint[] { 0x0024 } },
         new object[] { "£", new CodePoint[] { 0x00A3 } },

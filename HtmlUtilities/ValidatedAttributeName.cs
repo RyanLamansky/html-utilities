@@ -30,6 +30,11 @@ public readonly struct ValidatedAttributeName
 
         foreach (var cp in name)
         {
+            var categories = cp.InfraCategories;
+            const CodePointInfraCategory invalidCategories = CodePointInfraCategory.NonCharacter | CodePointInfraCategory.Control;
+            if ((categories & invalidCategories) != 0)
+                throw new ArgumentException($"name has an invalid character, code point {cp.Value:x2}.", nameof(name));
+
             switch (cp.Value)
             {
                 default:
@@ -43,9 +48,6 @@ public readonly struct ValidatedAttributeName
                     yield return ';';
                     continue;
 
-                case >= 0x0000 and <= 0x001F: // C0 Control
-                case >= 0x007F and <= 0x009F: // Control
-
                 // Specific characters
                 case ' ':
                 case '"':
@@ -53,44 +55,7 @@ public readonly struct ValidatedAttributeName
                 case '>':
                 case '/':
                 case '=':
-
-                // Noncharacters 
-                case >= 0xFDD0 and <= 0xFDEF:
-                case 0xFFFE:
-                case 0xFFFF:
-                case 0x1FFFE:
-                case 0x1FFFF:
-                case 0x2FFFE:
-                case 0x2FFFF:
-                case 0x3FFFE:
-                case 0x3FFFF:
-                case 0x4FFFE:
-                case 0x4FFFF:
-                case 0x5FFFE:
-                case 0x5FFFF:
-                case 0x6FFFE:
-                case 0x6FFFF:
-                case 0x7FFFE:
-                case 0x7FFFF:
-                case 0x8FFFE:
-                case 0x8FFFF:
-                case 0x9FFFE:
-                case 0x9FFFF:
-                case 0xAFFFE:
-                case 0xAFFFF:
-                case 0xBFFFE:
-                case 0xBFFFF:
-                case 0xCFFFE:
-                case 0xCFFFF:
-                case 0xDFFFE:
-                case 0xDFFFF:
-                case 0xEFFFE:
-                case 0xEFFFF:
-                case 0xFFFFE:
-                case 0xFFFFF:
-                case 0x10FFFE:
-                case 0x10FFFF:
-                    throw new ArgumentException($"name has an invalid character, code point {cp.Value}", nameof(name));
+                    throw new ArgumentException($"name has an invalid character, '{(char)cp.Value}'.", nameof(name));
             }
         }
     }

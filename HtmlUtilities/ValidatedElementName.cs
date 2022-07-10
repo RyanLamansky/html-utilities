@@ -34,14 +34,14 @@ public readonly struct ValidatedElementName
         if (!enumerator.MoveNext())
             throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
 
-        if (enumerator.Current.Value is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z'))
+        if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlpha) == 0)
             throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
 
         yield return enumerator.Current;
 
         while (enumerator.MoveNext())
         {
-            if (enumerator.Current.Value is not (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9'))
+            if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlphanumeric) == 0)
                 throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
 
             yield return enumerator.Current;

@@ -38,13 +38,6 @@ public readonly struct ValidatedAttributeValue
         {
             switch (codePoint.Value)
             {
-                // ASCII Whitespace
-                case 0x0009:
-                case 0x000A:
-                case 0x000C:
-                case 0x000D:
-                case 0x0020:
-
                 // Other characters that require quoting
                 case '"':
                 case '\'':
@@ -54,6 +47,9 @@ public readonly struct ValidatedAttributeValue
                 case '`':
                     break;
                 default:
+                    if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiWhitespace) != 0)
+                        break;
+
                     continue;
             }
 
