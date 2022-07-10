@@ -4,7 +4,7 @@ using System.Text;
 namespace HtmlUtilities;
 
 /// <summary>
-/// A high-performance writer for HTML5 content.
+/// A high-performance writer for HTML content.
 /// </summary>
 /// <remarks>UTF-8 is always used.</remarks>
 public readonly ref struct HtmlWriter
@@ -45,6 +45,13 @@ public readonly ref struct HtmlWriter
         writer.Write(element.end);
     }
 
+    private static void WriteGreaterThan(IBufferWriter<byte> writer)
+    {
+        var chars = writer.GetSpan(1);
+        chars[0] = (byte)'>';
+        writer.Advance(1);
+    }
+
     /// <summary>
     /// Writes a validated element with optional attributes and child content.
     /// </summary>
@@ -63,9 +70,7 @@ public readonly ref struct HtmlWriter
 
             attributes(new AttributeWriter(this.writer));
 
-            Span<byte> chars = stackalloc byte[1];
-            chars[0] = (byte)'>';
-            writer.Write(chars);
+            WriteGreaterThan(writer);
         }
 
         if (children is not null)
@@ -100,9 +105,16 @@ public readonly ref struct HtmlWriter
 
             attributes(new AttributeWriter(this.writer));
 
-            Span<byte> chars = stackalloc byte[1];
-            chars[0] = (byte)'>';
-            writer.Write(chars);
+            WriteGreaterThan(writer);
         }
+    }
+
+    /// <summary>
+    /// Writes validated text.
+    /// </summary>
+    /// <param name="text">The text to write.</param>
+    public void WriteText(ValidatedText text)
+    {
+        this.writer.Write(text.value);
     }
 }

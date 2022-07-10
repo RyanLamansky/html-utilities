@@ -85,4 +85,19 @@ public static class HtmlWriterTests
 
         Assert.Equal("<!DOCTYPE html><html><body><div id=react-app class=root></div></body></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
+
+    [Fact]
+    public static void WriteDocumentWithText()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        HtmlWriter.WriteDocument(buffer, null, writer =>
+        {
+            writer.WriteElement(new ValidatedElement("head"), children: writer =>
+            {
+                writer.WriteElement(new ValidatedElement("title"), null, children => children.WriteText(new ValidatedText("Test")));
+            });
+        });
+
+        Assert.Equal("<!DOCTYPE html><html><head><title>Test</title></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
 }
