@@ -44,9 +44,16 @@ public static class CodePointTests
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
-    public static void DecodeUtf16FromEnumerableCharacters(string value, CodePoint[] expected)
+    public static void DecodeUtf16FromString(string value, CodePoint[] expected)
     {
         Assert.Equal(expected, CodePoint.DecodeUtf16(value).ToArray());
+    }
+
+    [Theory]
+    [MemberData(nameof(Utf16TestCases))]
+    public static void DecodeUtf16FromEnumerableCharacters(string value, CodePoint[] expected)
+    {
+        Assert.Equal(expected, CodePoint.DecodeUtf16((IEnumerable<char>)value).ToArray());
     }
 
     [Theory]

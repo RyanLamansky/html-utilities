@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace HtmlUtilities;
 
@@ -9,28 +8,28 @@ namespace HtmlUtilities;
 public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
 {
     /// <summary>
-    /// Gets the raw unicode code point value.
+    /// Gets the raw Unicode code point value.
     /// </summary>
     public readonly uint Value { get; init; }
 
     /// <summary>
-    /// Creates a new <see cref="CodePoint"/> with the provided raw unicode value.
+    /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
+    /// <param name="value">The raw Unicode code point value.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
     public CodePoint(int value) : this((uint)value)
     {
     }
 
     /// <summary>
-    /// Creates a new <see cref="CodePoint"/> with the provided raw unicode value.
+    /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
+    /// <param name="value">The raw Unicode code point value.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the range of 0 through 1112064 (0x10FFFF).</exception>
     public CodePoint(uint value)
     {
         if (value > 0x10FFFF)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be in the ange of 0 through 1112064 (0x10FFFF).");
+            throw new ArgumentOutOfRangeException(nameof(value), "Value must be in the range of 0 through 1112064 (0x10FFFF).");
 
         this.Value = value;
     }
@@ -166,27 +165,27 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
+    /// <param name="value">The raw Unicode code point value.</param>
     public static implicit operator CodePoint(byte value) => new(value);
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
+    /// <param name="value">The raw Unicode code point value.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
     public static implicit operator CodePoint(int value) => new(value);
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
+    /// <param name="value">The raw Unicode code point value.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
     public static implicit operator CodePoint(uint value) => new(value);
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
-    /// <param name="value">The raw unicode code point value.</param>
+    /// <param name="value">The raw Unicode code point value.</param>
     public static implicit operator CodePoint(char value) => new(value);
 
     /// <summary>
@@ -227,7 +226,6 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
                 continue;
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool Next(IEnumerator<byte> enumerator, ref byte current)
             {
                 if (!enumerator.MoveNext())
@@ -284,6 +282,35 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <param name="source">The UTF-16 sequence.</param>
     /// <returns>The sequence of code points.</returns>
     public static IEnumerable<CodePoint> DecodeUtf16(IEnumerable<char> source)
+    {
+        using var enumerator = source.GetEnumerator();
+
+        while (enumerator.MoveNext())
+        {
+            var high = (int)enumerator.Current;
+
+            if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
+            {
+                yield return high;
+                continue;
+            }
+
+            if (!enumerator.MoveNext())
+                continue;
+
+            var low = (int)enumerator.Current;
+
+            yield return (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+        }
+    }
+
+    /// <summary>
+    /// Decodes a <see cref="string"/> into Unicode code points.
+    /// </summary>
+    /// <param name="source">The string to decode.</param>
+    /// <returns>The sequence of code points.</returns>
+    /// <remarks>This method leverages <see cref="CharEnumerator"/> for better performance than <see cref="DecodeUtf16(IEnumerable{char})"/>.</remarks>
+    public static IEnumerable<CodePoint> DecodeUtf16(string source)
     {
         using var enumerator = source.GetEnumerator();
 

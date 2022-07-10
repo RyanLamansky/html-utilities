@@ -32,7 +32,7 @@ public readonly struct ValidatedAttributeValue
         this.value = CodePoint.EncodeUtf8(SelectEmitter(value)).ToArray();
     }
 
-    private static IEnumerable<CodePoint> SelectEmitter(IEnumerable<char> value)
+    private static IEnumerable<CodePoint> SelectEmitter(string value)
     {
         foreach (var codePoint in CodePoint.DecodeUtf16(value))
         {
