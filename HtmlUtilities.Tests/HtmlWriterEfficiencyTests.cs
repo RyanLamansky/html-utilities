@@ -38,7 +38,7 @@ public static class HtmlWriterEfficiencyTests
     {
         var counter = new AdvanceCounter();
 
-        HtmlWriter.WriteDocument(counter, attributes => attributes.Write("lang", "en-us"));
+        HtmlWriter.WriteDocument(counter, attributes => attributes.Write(("lang", "en-us")));
 
         Assert.Equal(5, counter.Count);
     }

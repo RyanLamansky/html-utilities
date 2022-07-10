@@ -57,8 +57,42 @@ public readonly struct ValidatedAttribute
     }
 
     /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
+    /// </summary>
+    /// <param name="nameAndValue">A name and value to be validated.</param>
+    public ValidatedAttribute(KeyValuePair<string, string?> nameAndValue) : this(new ValidatedAttributeName(nameAndValue.Key), new ValidatedAttributeValue(nameAndValue.Value))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
+    /// </summary>
+    /// <param name="nameAndValue">A name and value to be validated.</param>
+    public ValidatedAttribute((string Name, string? Value) nameAndValue) : this(new ValidatedAttributeName(nameAndValue.Name), new ValidatedAttributeValue(nameAndValue.Value))
+    {
+    }
+
+    /// <summary>
     /// Returns a string of this attribute as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(this.value);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
+    /// </summary>
+    /// <param name="name">A name to be validated.</param>
+    public static implicit operator ValidatedAttribute(string name) => new(name);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
+    /// </summary>
+    /// <param name="nameAndValue">A name and value to be validated.</param>
+    public static implicit operator ValidatedAttribute(KeyValuePair<string, string?> nameAndValue) => new(nameAndValue);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
+    /// </summary>
+    /// <param name="nameAndValue">A name and value to be validated.</param>
+    public static implicit operator ValidatedAttribute((string Name, string? Value) nameAndValue) => new(nameAndValue);
 }

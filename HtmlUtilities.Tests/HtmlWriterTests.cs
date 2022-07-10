@@ -18,7 +18,7 @@ public static class HtmlWriterTests
     public static void WriteChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        HtmlWriter.WriteDocument(buffer, children: writer => writer.WriteElement(new ValidatedElement("head")));
+        HtmlWriter.WriteDocument(buffer, children: writer => writer.Write(new ValidatedElement("head")));
 
         Assert.Equal("<!DOCTYPE html><html><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -27,7 +27,7 @@ public static class HtmlWriterTests
     public static void WriteAttribute()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write("lang", "en-us"));
+        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write(("lang", "en-us")));
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -36,7 +36,7 @@ public static class HtmlWriterTests
     public static void WriteAttributeAndChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write("lang", "en-us"), writer => writer.WriteElement(new ValidatedElement("head")));
+        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write(("lang", "en-us")), writer => writer.Write(new ValidatedElement("head")));
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -47,9 +47,9 @@ public static class HtmlWriterTests
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
         {
-            writer.WriteElement(new ValidatedElement("head"), children: writer =>
+            writer.Write(new ValidatedElement("head"), children: writer =>
             {
-                writer.WriteElementSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
+                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write(("charset", "utf-8")));
             });
         });
 
@@ -62,9 +62,9 @@ public static class HtmlWriterTests
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
         {
-            writer.WriteElement(new ValidatedElement("body"), children: writer =>
+            writer.Write(new ValidatedElement("body"), children: writer =>
             {
-                writer.WriteElementSelfClosing(new ValidatedElement("p"));
+                writer.WriteSelfClosing(new ValidatedElement("p"));
             });
         });
 
@@ -77,9 +77,9 @@ public static class HtmlWriterTests
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
         {
-            writer.WriteElement(new ValidatedElement("body"), children: writer =>
+            writer.Write(new ValidatedElement("body"), children: writer =>
             {
-                writer.WriteElement(new ValidatedElement("div", new ValidatedAttribute[] { new("id", "react-app")}), attributes => attributes.Write("class", "root"));
+                writer.Write(new ValidatedElement("div", new ValidatedAttribute[] { new("id", "react-app")}), attributes => attributes.Write(("class", "root")));
             });
         });
 
@@ -92,9 +92,9 @@ public static class HtmlWriterTests
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
         {
-            writer.WriteElement(new ValidatedElement("head"), children: writer =>
+            writer.Write(new ValidatedElement("head"), children: writer =>
             {
-                writer.WriteElement(new ValidatedElement("title"), null, children => children.WriteText(new ValidatedText("Test")));
+                writer.Write(new ValidatedElement("title"), null, children => children.Write(new ValidatedText("Test")));
             });
         });
 

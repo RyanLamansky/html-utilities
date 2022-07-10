@@ -50,17 +50,4 @@ public readonly struct AttributeWriter
 
         writer.Write(name.value);
     }
-
-    /// <summary>
-    /// Writes an unvalidated attribute name and its corresponding value.
-    /// </summary>
-    /// <param name="name">The attribute name to verify and write.</param>
-    /// <param name="value">The value to verify and write.</param>
-    public void Write(string name, string? value) => this.Write(new ValidatedAttribute(name, value));
-
-    /// <summary>
-    /// Writes an unvalidated attribute name with no value.
-    /// </summary>
-    /// <param name="name">The attribute name to verify and write.</param>
-    public void Write(string name) => this.Write(new ValidatedAttribute(name));
 }

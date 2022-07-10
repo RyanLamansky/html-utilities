@@ -30,7 +30,7 @@ public class HtmlWriter
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
     public static void WriteDocument(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
-        new HtmlWriter(writer).WriteElement(html, attributes, children);
+        new HtmlWriter(writer).Write(html, attributes, children);
     }
 
     /// <summary>
@@ -42,14 +42,14 @@ public class HtmlWriter
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
     public static Task WriteDocumentAsync(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Func<HtmlWriterAsync, Task>? children = null)
     {
-        return new HtmlWriterAsync(writer).WriteElementAsync(html, attributes, children);
+        return new HtmlWriterAsync(writer).WriteAsync(html, attributes, children);
     }
 
     /// <summary>
     /// Writes a validated tag element.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
-    public void WriteElement(ValidatedElement element)
+    public void Write(ValidatedElement element)
     {
         var writer = this.writer;
 
@@ -70,7 +70,7 @@ public class HtmlWriter
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
-    public void WriteElement(ValidatedElement element, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
+    public void Write(ValidatedElement element, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         var writer = this.writer;
 
@@ -95,7 +95,7 @@ public class HtmlWriter
     /// Writes a validated element without an end tag.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
-    public void WriteElementSelfClosing(ValidatedElement element)
+    public void WriteSelfClosing(ValidatedElement element)
     {
         this.writer.Write(element.start);
     }
@@ -105,7 +105,7 @@ public class HtmlWriter
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElementSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
+    public void WriteSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
     {
         var writer = this.writer;
 
@@ -125,7 +125,7 @@ public class HtmlWriter
     /// Writes validated text.
     /// </summary>
     /// <param name="text">The text to write.</param>
-    public void WriteText(ValidatedText text)
+    public void Write(ValidatedText text)
     {
         this.writer.Write(text.value);
     }
