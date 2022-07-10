@@ -5,7 +5,7 @@ namespace HtmlUtilities;
 /// <summary>
 /// Writes attributes for an HTML element.
 /// </summary>
-public readonly ref struct AttributeWriter
+public readonly struct AttributeWriter
 {
     private readonly IBufferWriter<byte> writer;
 

@@ -7,14 +7,14 @@ namespace HtmlUtilities;
 /// A high-performance writer for HTML content.
 /// </summary>
 /// <remarks>UTF-8 is always used.</remarks>
-public readonly ref struct HtmlWriter
+public class HtmlWriter
 {
-    private static readonly byte[] doctype = Encoding.UTF8.GetBytes("<!DOCTYPE html>");
-    private static readonly ValidatedElement html = new("html");
+    internal static readonly byte[] doctype = Encoding.UTF8.GetBytes("<!DOCTYPE html>");
+    internal static readonly ValidatedElement html = new("html");
 
-    private readonly IBufferWriter<byte> writer;
+    private protected readonly IBufferWriter<byte> writer;
 
-    private HtmlWriter(IBufferWriter<byte> writer)
+    internal HtmlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
 
@@ -28,9 +28,21 @@ public readonly ref struct HtmlWriter
     /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
-    public static void WriteDocument(IBufferWriter<byte> writer, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
+    public static void WriteDocument(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         new HtmlWriter(writer).WriteElement(html, attributes, children);
+    }
+
+    /// <summary>
+    /// Writes an HTML document using the provided buffer writer and callbacks.
+    /// </summary>
+    /// <param name="writer">Receives the written bytes.</param>
+    /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
+    /// <param name="children">If provided, writes child elements.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
+    public static Task WriteDocumentAsync(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Func<HtmlWriterAsync, Task>? children = null)
+    {
+        return new HtmlWriterAsync(writer).WriteElementAsync(html, attributes, children);
     }
 
     /// <summary>
@@ -45,7 +57,7 @@ public readonly ref struct HtmlWriter
         writer.Write(element.end);
     }
 
-    private static void WriteGreaterThan(IBufferWriter<byte> writer)
+    private protected static void WriteGreaterThan(IBufferWriter<byte> writer)
     {
         var chars = writer.GetSpan(1);
         chars[0] = (byte)'>';
@@ -58,7 +70,7 @@ public readonly ref struct HtmlWriter
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
-    public void WriteElement(ValidatedElement element, WriteAttributesCallback? attributes = null, WriteHtmlCallback? children = null)
+    public void WriteElement(ValidatedElement element, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         var writer = this.writer;
 
@@ -93,7 +105,7 @@ public readonly ref struct HtmlWriter
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
-    public void WriteElementSelfClosing(ValidatedElement element, WriteAttributesCallback? attributes = null)
+    public void WriteElementSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
     {
         var writer = this.writer;
 
