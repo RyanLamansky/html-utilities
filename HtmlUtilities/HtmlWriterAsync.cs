@@ -20,10 +20,11 @@ public sealed class HtmlWriterAsync : HtmlWriter
     /// <param name="children">If provided, writes child elements.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>A task that represents the operation.</returns>
+    /// <exception cref="OperationCanceledException">A cancellation token in the call tree was triggered.</exception>
     public async Task WriteAsync(
         ValidatedElement element,
         Action<AttributeWriter>? attributes = null,
-        Func<HtmlWriterAsync, Task>? children = null,
+        Func<HtmlWriterAsync, CancellationToken, Task>? children = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -44,7 +45,7 @@ public sealed class HtmlWriterAsync : HtmlWriter
         if (children is not null)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await children(this).ConfigureAwait(false);
+            await children(this, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
         }
 

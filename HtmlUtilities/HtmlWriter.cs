@@ -39,10 +39,16 @@ public class HtmlWriter
     /// <param name="writer">Receives the written bytes.</param>
     /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
     /// <param name="children">If provided, writes child elements.</param>
+    /// <param name="cancellationToken">Used to trigger cancellation of writing activity.</param>
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
-    public static Task WriteDocumentAsync(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Func<HtmlWriterAsync, Task>? children = null)
+    /// <exception cref="OperationCanceledException">A cancellation token in the call tree was triggered.</exception>
+    public static Task WriteDocumentAsync(
+        IBufferWriter<byte> writer,
+        Action<AttributeWriter>? attributes = null,
+        Func<HtmlWriterAsync, CancellationToken, Task>? children = null,
+        CancellationToken cancellationToken = default)
     {
-        return new HtmlWriterAsync(writer).WriteAsync(html, attributes, children);
+        return new HtmlWriterAsync(writer).WriteAsync(html, attributes, children, cancellationToken);
     }
 
     /// <summary>

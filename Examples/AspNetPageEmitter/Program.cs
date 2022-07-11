@@ -6,7 +6,7 @@ app.MapFallback(async (HttpResponse response, CancellationToken cancellationToke
 {
     response.ContentType = "text/html; charset=utf-8";
 
-    await HtmlWriter.WriteDocumentAsync(response.BodyWriter, attributes => attributes.Write(("lang", "en-us")), async children =>
+    await HtmlWriter.WriteDocumentAsync(response.BodyWriter, attributes => attributes.Write(("lang", "en-us")), async (children, cancellationToken) =>
     {
         children.Write(new ValidatedElement("head"), null, children =>
         {
@@ -14,7 +14,7 @@ app.MapFallback(async (HttpResponse response, CancellationToken cancellationToke
             children.Write(new ValidatedElement("title"), null, children => children.Write(new ValidatedText("Hello World!")));
         }); //head
 
-        await children.WriteAsync(new ValidatedElement("body"), null, async children =>
+        await children.WriteAsync(new ValidatedElement("body"), null, async (children, cancellationToken) =>
         {
             children.Write(new ValidatedElement("p"), null, children => children.Write(new ValidatedText("First bytes.")));
 
@@ -23,7 +23,7 @@ app.MapFallback(async (HttpResponse response, CancellationToken cancellationToke
 
             children.Write(new ValidatedElement("p"), null, children => children.Write(new ValidatedText("Second bytes after a delay.")));
         }).ConfigureAwait(false); // body
-    }).ConfigureAwait(false);
+    }, cancellationToken).ConfigureAwait(false);
 
     await response.BodyWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
 });
