@@ -39,6 +39,13 @@ public readonly struct ValidatedElement
     {
     }
 
+    // Internal fast path for known-safe tag pairs.
+    internal ValidatedElement(byte[] start, byte[] end)
+    {
+        this.start = start;
+        this.end = end;
+    }
+
     /// <summary>
     /// Creates a new <see cref="ValidatedElement"/> including attributes.
     /// </summary>

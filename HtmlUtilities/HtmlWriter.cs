@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Text;
 
 namespace HtmlUtilities;
 
@@ -9,16 +8,22 @@ namespace HtmlUtilities;
 /// <remarks>UTF-8 is always used.</remarks>
 public class HtmlWriter
 {
-    internal static readonly byte[] doctype = Encoding.UTF8.GetBytes("<!DOCTYPE html>");
-    internal static readonly ValidatedElement html = new("html");
+    private static readonly ValidatedElement html = new(
+        new byte[]
+        {
+            (byte)'<', (byte)'!', (byte)'D', (byte)'O', (byte)'C', (byte)'T', (byte)'Y', (byte)'P', (byte)'E', (byte)' ', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
+            (byte)'<', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
+        },
+        new byte[]
+        {
+            (byte)'<', (byte)'/', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
+        });
 
     private protected readonly IBufferWriter<byte> writer;
 
     internal HtmlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
-
-        writer.Write(doctype);
     }
 
     /// <summary>
