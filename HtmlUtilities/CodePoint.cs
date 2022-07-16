@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-
 using static HtmlUtilities.CodePointInfraCategory;
 
 namespace HtmlUtilities;
@@ -187,7 +186,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
         }
     }
 
-    private static CodePointInfraCategory NonAsciiInfraCategory(uint codePoint) =>codePoint switch
+    private static CodePointInfraCategory NonAsciiInfraCategory(uint codePoint) => codePoint switch
     {
         <= 0x9F => ScalarValue | Control,
         >= 0xD800 and <= 0xDFFF => Surrogate,
@@ -205,41 +204,22 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <summary>
     /// Gets the number of bytes required to encode this code point with UTF-8.
     /// </summary>
-    public int Utf8ByteCount
+    public int Utf8ByteCount => Value switch
     {
-        get
-        {
-            var value = this.Value;
+        <= 0x7F => 1,
+        <= 0x7FF => 2,
+        <= 0xFFFF => 3,
+        _ => 4
+    };
 
-            if (value <= 0x7F)
-                return 1;
-            if (value <= 0x7FF)
-                return 2;
-            if (value <= 0xFFFF)
-                return 3;
-            if (value <= 0x10FFFF)
-                return 4;
-
-            return 0; // This should only be possible if the value was altered via direct memory edit.
-        }
-    }
     /// <summary>
     /// Gets the number of bytes required to encode this code point with UTF-16.
     /// </summary>
-    public int Utf16ByteCount
+    public int Utf16ByteCount => Value switch
     {
-        get
-        {
-            var value = this.Value;
-
-            if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
-            {
-                return 2;
-            }
-
-            return 4;
-        }
-    }
+        <= 0xD7FF or >= 0xE000 and <= 0xFFFF => 2,
+        _ => 4
+    };
 
     /// <inheritdoc />
     public int CompareTo(CodePoint other) => this.Value.CompareTo(other.Value);
@@ -537,10 +517,10 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
 
         while (enumerator.MoveNext())
         {
-            var current = enumerator.Current;
+            var current = enumerator.Current.Value;
 
             if (current <= 0x7F)
-                yield return (byte)current.Value;
+                yield return (byte)current;
             else if (current <= 0x7FF)
             {
                 yield return (byte)(0b11000000 | (current >> 6));
