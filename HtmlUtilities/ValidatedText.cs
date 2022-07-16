@@ -7,7 +7,7 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedText
 {
-    internal readonly byte[] value;
+    internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedText"/> with the provided content.
@@ -18,7 +18,7 @@ public readonly struct ValidatedText
     {
         if (string.IsNullOrEmpty(text))
         {
-            this.value = Array.Empty<byte>();
+            this.value = null;
             return;
         }
 
@@ -59,5 +59,5 @@ public readonly struct ValidatedText
     /// Returns a string of this text as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
-    public override string ToString() => Encoding.UTF8.GetString(value);
+    public override string ToString() => value is null ? "" : Encoding.UTF8.GetString(value);
 }

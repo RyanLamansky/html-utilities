@@ -7,7 +7,7 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeValue
 {
-    internal readonly byte[] value;
+    internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided string.
@@ -19,7 +19,7 @@ public readonly struct ValidatedAttributeValue
 
         if (value is null)
         {
-            this.value = Array.Empty<byte>();
+            this.value = null;
             return;
         }
 
@@ -291,5 +291,5 @@ public readonly struct ValidatedAttributeValue
     /// Returns a string of this attribute value as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
-    public override string ToString() => Encoding.UTF8.GetString(this.value);
+    public override string ToString() => value is null ? "" : Encoding.UTF8.GetString(value);
 }

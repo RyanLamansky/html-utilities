@@ -2,6 +2,14 @@
 
 public static class ValidatedTextTests
 {
+    [Fact]
+    public static void ValidatedTextUnconstructedIsBlank()
+    {
+        var array = new ValidatedText[1];
+
+        Assert.Empty(array[0].ToString());
+    }
+
     [Theory]
     [InlineData("", "")]
     [InlineData("Test", "Test")]

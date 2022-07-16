@@ -2,6 +2,14 @@
 
 public static class ValidatedAttributeTests
 {
+    [Fact]
+    public static void ValidatedAttributeUnconstructedIsBlank()
+    {
+        var array = new ValidatedAttribute[1];
+
+        Assert.Empty(array[0].ToString());
+    }
+
     [Theory]
     [InlineData("lang", "en", " lang=en")]
     [InlineData("lang", "en-us", " lang=en-us")]

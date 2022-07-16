@@ -24,6 +24,19 @@ public static class HtmlWriterAsyncTests
     }
 
     [Fact]
+    public static async Task WriteUnconstructedChildElementThrows()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        var array = new ValidatedElement[1];
+
+        var caught = await Assert
+            .ThrowsAsync<ArgumentException>(() => HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) => writer.WriteAsync(array[0], cancellationToken: cancellationToken)))
+            .ConfigureAwait(false);
+
+        Assert.Equal("element", caught.ParamName);
+    }
+
+    [Fact]
     public static async Task WriteAttribute()
     {
         var buffer = new ArrayBufferWriter<byte>();

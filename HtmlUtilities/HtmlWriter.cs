@@ -60,12 +60,18 @@ public class HtmlWriter
     /// Writes a validated tag element.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void Write(ValidatedElement element)
     {
         var writer = this.writer;
+        var start = element.start;
+        var end = element.end;
 
-        writer.Write(element.start);
-        writer.Write(element.end);
+        if (start is null || end is null)
+            throw new ArgumentException("element was never initialized.", nameof(element));
+
+        writer.Write(start);
+        writer.Write(end);
     }
 
     private protected static void WriteGreaterThan(IBufferWriter<byte> writer)
@@ -81,15 +87,21 @@ public class HtmlWriter
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void Write(ValidatedElement element, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         var writer = this.writer;
+        var start = element.start;
+        var end = element.end;
+
+        if (start is null || end is null)
+            throw new ArgumentException("element was never initialized.", nameof(element));
 
         if (attributes is null)
-            writer.Write(element.start);
+            writer.Write(start);
         else
         {
-            writer.Write(element.start.AsSpan(0, element.start.Length - 1));
+            writer.Write(element.start.AsSpan(0, start.Length - 1));
 
             attributes(new AttributeWriter(this.writer));
 
@@ -99,16 +111,22 @@ public class HtmlWriter
         if (children is not null)
             children(this);
 
-        writer.Write(element.end);
+        writer.Write(end);
     }
 
     /// <summary>
     /// Writes a validated element without an end tag.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void WriteSelfClosing(ValidatedElement element)
     {
-        this.writer.Write(element.start);
+        var start = element.start;
+
+        if (start is null)
+            throw new ArgumentException("element was never initialized.", nameof(element));
+
+        this.writer.Write(start);
     }
 
     /// <summary>
@@ -116,15 +134,20 @@ public class HtmlWriter
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void WriteSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
     {
         var writer = this.writer;
+        var start = element.start;
+
+        if (start is null)
+            throw new ArgumentException("element was never initialized.", nameof(element));
 
         if (attributes is null)
-            writer.Write(element.start);
+            writer.Write(start);
         else
         {
-            writer.Write(element.start.AsSpan(0, element.start.Length - 1));
+            writer.Write(element.start.AsSpan(0, start.Length - 1));
 
             attributes(new AttributeWriter(this.writer));
 
@@ -138,6 +161,10 @@ public class HtmlWriter
     /// <param name="text">The text to write.</param>
     public void Write(ValidatedText text)
     {
-        this.writer.Write(text.value);
+        var value = text.value;
+        if (value is null)
+            return;
+
+        this.writer.Write(value);
     }
 }

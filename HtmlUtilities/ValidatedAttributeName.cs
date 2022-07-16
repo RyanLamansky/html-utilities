@@ -7,7 +7,7 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeName
 {
-    internal readonly byte[] value;
+    internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
@@ -21,7 +21,7 @@ public readonly struct ValidatedAttributeName
         if (name.Length == 0)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
-        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name)).Prepend(' ')).ToArray();
+        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).Prepend((byte)' ').ToArray();
     }
 
     private static IEnumerable<CodePoint> Validate(IEnumerable<CodePoint> name)
@@ -64,5 +64,12 @@ public readonly struct ValidatedAttributeName
     /// Converts the validated name to a string.
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
-    public override string ToString() => Encoding.UTF8.GetString(this.value);
+    /// <exception cref="InvalidOperationException">This ValidatedAttributeName was never initialized.</exception>
+    public override string ToString() => Encoding.UTF8.GetString(value ?? throw new InvalidOperationException("This ValidatedAttributeName was never initialized."));
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided validated name and no value.
+    /// </summary>
+    /// <param name="name">A validated name.</param>
+    public static implicit operator ValidatedAttribute(ValidatedAttributeName name) => new ValidatedAttribute(name);
 }

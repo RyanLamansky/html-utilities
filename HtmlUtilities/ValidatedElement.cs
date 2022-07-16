@@ -7,8 +7,8 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedElement
 {
-    internal readonly byte[] start;
-    internal readonly byte[] end;
+    internal readonly byte[]? start;
+    internal readonly byte[]? end;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedElement"/> that contains no attributes.
@@ -51,15 +51,24 @@ public readonly struct ValidatedElement
     /// </summary>
     /// <param name="name">A validated element name.</param>
     /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public ValidatedElement(ValidatedElementName name, IEnumerable<ValidatedAttribute>? attributes)
     {
         attributes ??= Enumerable.Empty<ValidatedAttribute>();
 
         var elementNameValue = name.value;
+        if (elementNameValue is null)
+            throw new ArgumentException("name was never initialized.", nameof(name));
 
         var attributeValueLengthSum = 0;
         foreach (var attribute in attributes)
-            attributeValueLengthSum += attribute.value.Length;
+        {
+            var value = attribute.value;
+            if (value is null)
+                continue;
+
+            attributeValueLengthSum += value.Length;
+        }
 
         var buffer = this.start = new byte[elementNameValue.Length + attributeValueLengthSum + 2];
         buffer[0] = (byte)'<';
@@ -69,6 +78,8 @@ public readonly struct ValidatedElement
         foreach (var attribute in attributes)
         {
             var value = attribute.value;
+            if (value is null)
+                continue;
 
             Array.Copy(value, 0, buffer, written, value.Length);
 
@@ -110,5 +121,6 @@ public readonly struct ValidatedElement
     /// Returns the element start tag in string form.
     /// </summary>
     /// <returns>A string representation of the element start tag.</returns>
-    public override string ToString() => Encoding.UTF8.GetString(start);
+    /// <exception cref="InvalidOperationException">This <see cref="ValidatedElement"/> was never initialized.</exception>
+    public override string ToString() => Encoding.UTF8.GetString(start ?? throw new InvalidOperationException("This ValidatedElement was never initialized."));
 }

@@ -24,6 +24,15 @@ public static class HtmlWriterTests
     }
 
     [Fact]
+    public static void WriteUnconstructedChildElementThrows()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        var array = new ValidatedElement[1];
+
+        Assert.Equal("element", Assert.Throws<ArgumentException>(() => HtmlWriter.WriteDocument(buffer, children: writer => writer.Write(array[0]))).ParamName);
+    }
+
+    [Fact]
     public static void WriteAttribute()
     {
         var buffer = new ArrayBufferWriter<byte>();

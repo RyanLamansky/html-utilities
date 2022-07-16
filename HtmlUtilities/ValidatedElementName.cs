@@ -7,7 +7,7 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedElementName
 {
-    internal readonly byte[] value;
+    internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
@@ -17,6 +17,8 @@ public readonly struct ValidatedElementName
     public ValidatedElementName(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
+        if (name.Length == 0)
+            throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
         this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).ToArray();
     }
@@ -52,5 +54,6 @@ public readonly struct ValidatedElementName
     /// Converts the validated name to a string.
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
-    public override string ToString() => Encoding.UTF8.GetString(this.value);
+    /// <exception cref="InvalidOperationException">This <see cref="ValidatedElementName"/> was never initialized.</exception>
+    public override string ToString() => Encoding.UTF8.GetString(value ?? throw new InvalidOperationException("This ValidatedElementName was never initialized."));
 }

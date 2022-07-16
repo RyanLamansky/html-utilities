@@ -2,6 +2,14 @@
 
 public static class ValidatedElementNameTests
 {
+    [Fact]
+    public static void ValidatedElementNameUnconstructedThrows()
+    {
+        var array = new ValidatedElementName[1];
+
+        Assert.Throws<InvalidOperationException>(array[0].ToString);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]

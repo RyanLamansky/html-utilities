@@ -21,6 +21,7 @@ public sealed class HtmlWriterAsync : HtmlWriter
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>A task that represents the operation.</returns>
     /// <exception cref="OperationCanceledException">A cancellation token in the call tree was triggered.</exception>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public async Task WriteAsync(
         ValidatedElement element,
         Action<AttributeWriter>? attributes = null,
@@ -30,12 +31,17 @@ public sealed class HtmlWriterAsync : HtmlWriter
         cancellationToken.ThrowIfCancellationRequested();
 
         var writer = this.writer;
+        var start = element.start;
+        var end = element.end;
+
+        if (start is null || end is null)
+            throw new ArgumentException("element was never initialized.", nameof(element));
 
         if (attributes is null)
-            writer.Write(element.start);
+            writer.Write(start);
         else
         {
-            writer.Write(element.start.AsSpan(0, element.start.Length - 1));
+            writer.Write(start.AsSpan(0, start.Length - 1));
 
             attributes(new AttributeWriter(this.writer));
 
@@ -49,6 +55,6 @@ public sealed class HtmlWriterAsync : HtmlWriter
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        writer.Write(element.end);
+        writer.Write(end);
     }
 }
