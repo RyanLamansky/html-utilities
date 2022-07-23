@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using static HtmlUtilities.CodePointInfraCategory;
 
 namespace HtmlUtilities;
@@ -17,7 +18,6 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
     /// </summary>
     /// <param name="value">The raw Unicode code point value.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
     public CodePoint(int value) : this((uint)value)
     {
     }
@@ -26,17 +26,13 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
     /// </summary>
     /// <param name="value">The raw Unicode code point value.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the range of 0 through 1112064 (0x10FFFF).</exception>
     public CodePoint(uint value)
     {
-        if (value > 0x10FFFF)
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be in the range of 0 through 1112064 (0x10FFFF).");
-
         this.Value = value;
     }
 
     // This pre-caculated lookup table provides O(1) lookup time for ASCII characters.
-    private static readonly CodePointInfraCategory[] AsciiInfraCategories = new CodePointInfraCategory[]
+    private static readonly CodePointInfraCategory[] AsciiInfraCategories = new[]
     {
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
@@ -169,10 +165,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     };
 
     /// <summary>
-    /// Gets the categoryies of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+    /// Gets the categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
     /// </summary>
     public CodePointInfraCategory InfraCategories
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             var value = (int)Value; // int produces better CIL for using the array.
@@ -198,6 +195,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
         or 0xCFFFE or 0xCFFFF or 0xDFFFE or 0xDFFFF or 0xEFFFE or 0xEFFFF
         or 0xFFFFE or 0xFFFFF or 0x10FFFE or 0x10FFFF
         => ScalarValue | NonCharacter,
+        > 0x10FFFF => None,
         _ => ScalarValue,
     };
 
@@ -209,7 +207,8 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
         <= 0x7F => 1,
         <= 0x7FF => 2,
         <= 0xFFFF => 3,
-        _ => 4
+        <= 0x10FFFF => 4,
+        _ => 0
     };
 
     /// <summary>
@@ -218,8 +217,56 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     public int Utf16ByteCount => Value switch
     {
         <= 0xD7FF or >= 0xE000 and <= 0xFFFF => 2,
-        _ => 4
+        <= 0x10FFFF => 4,
+        _ => 0
     };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void WriteUtf8To(ref ArrayBuilder<byte> writer)
+    {
+        var value = this.Value;
+
+        if (value <= 0x7F)
+        {
+            writer.Write((byte)value);
+            return;
+        }
+
+        static void WriteUtf8ToNonAscii(ref ArrayBuilder<byte> writer, uint value)
+        {
+            if (value <= 0x7FF)
+            {
+                var destination = writer.GetSpan(2);
+
+                destination[0] = (byte)(0b11000000 | (value >> 6));
+                destination[1] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+
+            if (value <= 0xFFFF)
+            {
+                var destination = writer.GetSpan(3);
+
+                destination[0] = (byte)(0b11100000 | (value >> 12));
+                destination[1] = (byte)(0b10000000 | (value >> 6) & 0b00111111);
+                destination[2] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+
+            if (value <= 0x10FFFF)
+            {
+                var destination = writer.GetSpan(4);
+
+                destination[0] = (byte)(0b11110000 | (value >> 18));
+                destination[1] = (byte)(0b10000000 | (value >> 12) & 0b00111111);
+                destination[2] = (byte)(0b10000000 | (value >> 6) & 0b00111111);
+                destination[3] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+        }
+
+        WriteUtf8ToNonAscii(ref writer, value);
+    }
 
     /// <inheritdoc />
     public int CompareTo(CodePoint other) => this.Value.CompareTo(other.Value);
@@ -320,14 +367,12 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
     /// <param name="value">The raw Unicode code point value.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
-    public static implicit operator CodePoint(int value) => new(value);
+    public static implicit operator CodePoint(int value) => new((uint)value);
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> value from the provided value.
     /// </summary>
     /// <param name="value">The raw Unicode code point value.</param>
-    /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> must be in the ange of 0 through 1112064 (0x10FFFF).</exception>
     public static implicit operator CodePoint(uint value) => new(value);
 
     /// <summary>
@@ -541,4 +586,75 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
             }
         }
     }
+
+    /// <summary>
+    /// Enumerates <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
+    /// </summary>
+    public ref struct Utf16DecoderEnumerator
+    {
+        private ReadOnlySpan<char>.Enumerator enumerator;
+
+        /// <summary>
+        /// The current <see cref="CodePoint"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
+        /// </summary>
+        public CodePoint Current { readonly get; private set; }
+
+        internal Utf16DecoderEnumerator(ReadOnlySpan<char> source)
+        {
+            this.enumerator = source.GetEnumerator();
+            this.Current = default;
+        }
+
+        /// <summary>
+        /// Reads the next <see cref="CodePoint"/> from the source.
+        /// </summary>
+        /// <returns>True if a value was found, false if the end of the source has been reached.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool MoveNext()
+        {
+            if (!enumerator.MoveNext())
+                return false;
+
+            var high = (int)enumerator.Current;
+
+            if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
+            {
+                Current = high;
+                return true;
+            }
+            else if (!enumerator.MoveNext())
+            {
+                return false;
+            }
+
+            var low = (int)enumerator.Current;
+            Current = (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Wraps a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> for on-demand enumeration into <see cref="CodePoint"/>s.
+    /// </summary>
+    public readonly ref struct Utf16DecoderEnumerable
+    {
+        private readonly ReadOnlySpan<char> source;
+
+        internal Utf16DecoderEnumerable(ReadOnlySpan<char> source)
+        {
+            this.source = source;
+        }
+
+        /// <summary>
+        /// Gets an enumerator to produce <see cref="CodePoint"/> from the source.
+        /// </summary>
+        /// <returns>The enumerator.</returns>
+        public Utf16DecoderEnumerator GetEnumerator() => new(source);
+    }
+
+    /// <summary>
+    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
+    /// </summary>
+    public static Utf16DecoderEnumerable GetEnumerable(ReadOnlySpan<char> source) => new(source);
 }

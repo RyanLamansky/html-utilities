@@ -40,7 +40,7 @@ public static class HtmlWriterAsyncTests
     public static async Task WriteAttribute()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write(("lang", "en-us"))).ConfigureAwait(false);
+        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write("lang", "en-us")).ConfigureAwait(false);
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -49,7 +49,7 @@ public static class HtmlWriterAsyncTests
     public static async Task WriteAttributeAndChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write(("lang", "en-us")), (writer, cancellationToken) => writer.WriteAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
+        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write("lang", "en-us"), (writer, cancellationToken) => writer.WriteAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -62,7 +62,7 @@ public static class HtmlWriterAsyncTests
         {
             return writer.WriteAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
             {
-                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write(("charset", "utf-8")));
+                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
                 return Task.CompletedTask;
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
@@ -94,7 +94,7 @@ public static class HtmlWriterAsyncTests
         {
             return writer.WriteAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteAsync(new ValidatedElement("div", new ValidatedAttribute[] { ("id", "react-app") }), attributes => attributes.Write(("class", "root")), cancellationToken: cancellationToken);
+                return writer.WriteAsync(new ValidatedElement("div", new ValidatedAttribute[] { ("id", "react-app") }), attributes => attributes.Write("class", "root"), cancellationToken: cancellationToken);
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
 

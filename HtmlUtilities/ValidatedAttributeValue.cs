@@ -7,6 +7,8 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeValue
 {
+    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
+    private static readonly byte[] andQuot = new[] { (byte)'&', (byte)'q', (byte)'u', (byte)'o', (byte)'t', (byte)';', };
     internal readonly byte[]? value;
 
     /// <summary>
@@ -29,7 +31,17 @@ public readonly struct ValidatedAttributeValue
             return;
         }
 
-        this.value = CodePoint.EncodeUtf8(SelectEmitter(value)).ToArray();
+
+        var writer = new ArrayBuilder<byte>(value.Length);
+        try
+        {
+            Validate(value, ref writer);
+            this.value = writer.ToArray();
+        }
+        finally
+        {
+            writer.Release();
+        }
     }
 
     /// <summary>
@@ -49,7 +61,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = Array.Empty<byte>();
+            this.value = null;
             return;
         }
 
@@ -73,7 +85,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = Array.Empty<byte>();
+            this.value = null;
             return;
         }
 
@@ -207,9 +219,9 @@ public readonly struct ValidatedAttributeValue
         return result;
     }
 
-    private static IEnumerable<CodePoint> SelectEmitter(string value)
+    internal static void Validate(string value, ref ArrayBuilder<byte> writer)
     {
-        foreach (var codePoint in CodePoint.DecodeUtf16(value))
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -228,63 +240,52 @@ public readonly struct ValidatedAttributeValue
                     continue;
             }
 
-            return EmitQuoted(CodePoint.DecodeUtf16(value));
+            EmitQuoted(value, ref writer);
+            return;
         }
 
-        return EmitUnquoted(CodePoint.DecodeUtf16(value));
+        EmitUnquoted(value, ref writer);
+        return;
     }
 
-    private static IEnumerable<CodePoint> EmitUnquoted(IEnumerable<CodePoint> value)
+    private static void EmitUnquoted(string value, ref ArrayBuilder<byte> writer)
     {
-        yield return '=';
+        writer.Write((byte)'=');
 
-        foreach (var cp in value)
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
-            switch (cp.Value)
+            switch (codePoint.Value)
             {
                 case '&':
-                    yield return '&';
-                    yield return 'a';
-                    yield return 'm';
-                    yield return 'p';
-                    yield return ';';
+                    writer.Write(andAmp);
                     continue;
             }
 
-            yield return cp;
+            codePoint.WriteUtf8To(ref writer);
         }
     }
 
-    private static IEnumerable<CodePoint> EmitQuoted(IEnumerable<CodePoint> value)
+    private static void EmitQuoted(string value, ref ArrayBuilder<byte> writer)
     {
-        yield return '=';
-        yield return '"';
+        writer.Write((byte)'=');
+        writer.Write((byte)'"');
 
-        foreach (var cp in value)
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
-            switch (cp.Value)
+            switch (codePoint.Value)
             {
+                case '&':
+                    writer.Write(andAmp);
+                    continue;
                 case '"':
-                    yield return '&';
-                    yield return 'q';
-                    yield return 'u';
-                    yield return 'o';
-                    yield return 't';
-                    yield return ';';
-                    continue;
-                case '&':
-                    yield return '&';
-                    yield return 'a';
-                    yield return 'm';
-                    yield return 'p';
-                    yield return ';';
+                    writer.Write(andQuot);
                     continue;
             }
 
-            yield return cp;
+            codePoint.WriteUtf8To(ref writer);
         }
 
-        yield return '"';
+        writer.Write((byte)'"');
     }
 
     /// <summary>

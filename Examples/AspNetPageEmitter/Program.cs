@@ -6,11 +6,11 @@ app.MapFallback(async (HttpResponse response, CancellationToken cancellationToke
 {
     response.ContentType = "text/html; charset=utf-8";
 
-    await HtmlWriter.WriteDocumentAsync(response.BodyWriter, attributes => attributes.Write(("lang", "en-us")), async (children, cancellationToken) =>
+    await HtmlWriter.WriteDocumentAsync(response.BodyWriter, attributes => attributes.Write("lang", "en-us"), async (children, cancellationToken) =>
     {
         children.Write(new ValidatedElement("head"), null, children =>
         {
-            children.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write(("charset", "utf-8")));
+            children.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
             children.Write(new ValidatedElement("title"), null, children => children.Write(new ValidatedText("Hello World!")));
         }); //head
 

@@ -7,6 +7,9 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedText
 {
+    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
+    private static readonly byte[] andLt = new[] { (byte)'&', (byte)'l', (byte)'t', (byte)';', };
+
     internal readonly byte[]? value;
 
     /// <summary>
@@ -15,44 +18,51 @@ public readonly struct ValidatedText
     /// <param name="text">The text to use.</param>
     /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
     public ValidatedText(string? text)
+        : this((ReadOnlySpan<char>)text)
     {
-        if (string.IsNullOrEmpty(text))
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedText"/> with the provided content.
+    /// </summary>
+    /// <param name="text">The text to use.</param>
+    /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
+    public ValidatedText(ReadOnlySpan<char> text)
+    {
+        if (text.IsEmpty)
         {
             this.value = null;
             return;
         }
 
-        this.value = CodePoint.EncodeUtf8(Escape(text)).ToArray();
-    }
-
-    private static IEnumerable<CodePoint> Escape(string text)
-    {
-        foreach (var codePoint in CodePoint.DecodeUtf16(text))
+        var writer = new ArrayBuilder<byte>(text.Length);
+        try
         {
-            var categories = codePoint.InfraCategories;
-            if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
-                continue;
-
-            switch (codePoint.Value)
+            foreach (var codePoint in CodePoint.GetEnumerable(text))
             {
-                case '&':
-                    yield return '&';
-                    yield return 'a';
-                    yield return 'm';
-                    yield return 'p';
-                    yield return ';';
+                var categories = codePoint.InfraCategories;
+                if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
                     continue;
-                case '<':
-                    yield return '&';
-                    yield return 'l';
-                    yield return 't';
-                    yield return ';';
-                    continue;
+
+                switch (codePoint.Value)
+                {
+                    case '&':
+                        writer.Write(andAmp);
+                        continue;
+                    case '<':
+                        writer.Write(andLt);
+                        continue;
+                }
+
+                codePoint.WriteUtf8To(ref writer);
             }
 
-            yield return codePoint;
+            this.value = writer.ToArray();
         }
-        yield break;
+        finally
+        {
+            writer.Release();
+        }
     }
 
     /// <summary>

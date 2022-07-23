@@ -36,7 +36,7 @@ public static class HtmlWriterTests
     public static void WriteAttribute()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write(("lang", "en-us")));
+        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write("lang", "en-us"));
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -45,7 +45,7 @@ public static class HtmlWriterTests
     public static void WriteAttributeAndChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write(("lang", "en-us")), writer => writer.Write(new ValidatedElement("head")));
+        HtmlWriter.WriteDocument(buffer, attributes => attributes.Write("lang", "en-us"), writer => writer.Write(new ValidatedElement("head")));
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -58,7 +58,7 @@ public static class HtmlWriterTests
         {
             writer.Write(new ValidatedElement("head"), children: writer =>
             {
-                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write(("charset", "utf-8")));
+                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
             });
         });
 
@@ -88,7 +88,7 @@ public static class HtmlWriterTests
         {
             writer.Write(new ValidatedElement("body"), children: writer =>
             {
-                writer.Write(new ValidatedElement("div", new ValidatedAttribute[] { new("id", "react-app")}), attributes => attributes.Write(("class", "root")));
+                writer.Write(new ValidatedElement("div", new ValidatedAttribute[] { new("id", "react-app")}), attributes => attributes.Write("class", "root"));
             });
         });
 

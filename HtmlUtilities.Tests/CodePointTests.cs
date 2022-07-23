@@ -5,14 +5,6 @@ namespace HtmlUtilities;
 public static class CodePointTests
 {
     [Theory]
-    [InlineData(0x10FFFF + 1)]
-    [InlineData(-1)]
-    public static void OutOfRangeValuesAreBlocked(int value)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new CodePoint(value));
-    }
-
-    [Theory]
     [InlineData(0x00, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
         | CodePointInfraCategory.Control
         | CodePointInfraCategory.C0Control
@@ -273,5 +265,16 @@ public static class CodePointTests
         Assert.Equal<char>('€', (char)cp);
 
         Assert.Throws<OverflowException>(() => (char)new CodePoint(0x24B62));
+    }
+
+    [Theory]
+    [MemberData(nameof(Utf16TestCases))]
+    public static void DecodeUtf16FromStackEnumerableCharacters(string value, CodePoint[] expected)
+    {
+        var results = new List<CodePoint>();
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
+            results.Add(codePoint);
+
+        Assert.Equal(expected, results);
     }
 }

@@ -26,8 +26,61 @@ public readonly struct AttributeWriter
         if (value is null)
             return;
 
-        var writer = this.writer;
-
         writer.Write(value);
+    }
+
+    /// <summary>
+    /// Writes an attribute that consists only of a name, no value.
+    /// </summary>
+    /// <param name="name">The attribute to write.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public void Write(string name)
+    {
+        var w = new ArrayBuilder<byte>(name.Length);
+        try
+        {
+            ValidatedAttributeName.Validate(name, ref w);
+            writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
+    /// Writes an attribute name and value pair.
+    /// </summary>
+    /// <param name="name">The attribute to write.</param>
+    /// <param name="value">The value to write.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public void Write(string name, string? value)
+    {
+        var w = new ArrayBuilder<byte>(name.Length);
+        try
+        {
+            ValidatedAttributeName.Validate(name, ref w);
+            writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+
+        if (value is not null)
+        {
+            w = new ArrayBuilder<byte>(value.Length + 3);
+            try
+            {
+                ValidatedAttributeValue.Validate(value, ref w);
+                writer.Write(w.WrittenSpan);
+            }
+            finally
+            {
+                w.Release();
+            }
+        }
     }
 }

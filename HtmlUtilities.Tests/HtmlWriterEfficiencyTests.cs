@@ -34,12 +34,22 @@ public static class HtmlWriterEfficiencyTests
     }
 
     [Fact]
+    public static void WriteDocumentWithValidatedAttributeEfficiency()
+    {
+        var counter = new AdvanceCounter();
+
+        HtmlWriter.WriteDocument(counter, attributes => attributes.Write(new ValidatedAttribute("lang", "en-us")));
+
+        Assert.Equal(4, counter.Count);
+    }
+
+    [Fact]
     public static void WriteDocumentWithAttributeEfficiency()
     {
         var counter = new AdvanceCounter();
 
-        HtmlWriter.WriteDocument(counter, attributes => attributes.Write(("lang", "en-us")));
+        HtmlWriter.WriteDocument(counter, attributes => attributes.Write("lang", "en-us"));
 
-        Assert.Equal(4, counter.Count);
+        Assert.Equal(5, counter.Count);
     }
 }

@@ -7,6 +7,7 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeName
 {
+    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
     internal readonly byte[]? value;
 
     /// <summary>
@@ -17,35 +18,35 @@ public readonly struct ValidatedAttributeName
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
     public ValidatedAttributeName(string name)
     {
+        var writer = new ArrayBuilder<byte>(name.Length);
+        try
+        {
+            Validate(name, ref writer);
+            this.value = writer.ToArray();
+        }
+        finally
+        {
+            writer.Release();
+        }
+    }
+
+    internal static void Validate(string name, ref ArrayBuilder<byte> writer)
+    {
         ArgumentNullException.ThrowIfNull(name);
         if (name.Length == 0)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
-        this.value = CodePoint.EncodeUtf8(Validate(CodePoint.DecodeUtf16(name))).Prepend((byte)' ').ToArray();
-    }
-
-    private static IEnumerable<CodePoint> Validate(IEnumerable<CodePoint> name)
-    {
-        // https://html.spec.whatwg.org/#attributes-2
-
-        foreach (var cp in name)
+        writer.Write((byte)' ');
+        foreach (var codePoint in CodePoint.GetEnumerable(name))
         {
-            var categories = cp.InfraCategories;
-            const CodePointInfraCategory invalidCategories = CodePointInfraCategory.NonCharacter | CodePointInfraCategory.Control;
-            if ((categories & invalidCategories) != 0)
-                throw new ArgumentException($"name has an invalid character, code point {cp.Value:x2}.", nameof(name));
+            var categories = codePoint.InfraCategories;
+            if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
+                continue;
 
-            switch (cp.Value)
+            switch (codePoint.Value)
             {
-                default:
-                    yield return cp;
-                    continue;
                 case '&':
-                    yield return '&';
-                    yield return 'a';
-                    yield return 'm';
-                    yield return 'p';
-                    yield return ';';
+                    writer.Write(andAmp);
                     continue;
 
                 // Specific characters
@@ -55,8 +56,10 @@ public readonly struct ValidatedAttributeName
                 case '>':
                 case '/':
                 case '=':
-                    throw new ArgumentException($"name has an invalid character, '{(char)cp.Value}'.", nameof(name));
+                    throw new ArgumentException($"name has an invalid character, '{(char)codePoint.Value}'.", nameof(name));
             }
+
+            codePoint.WriteUtf8To(ref writer);
         }
     }
 
