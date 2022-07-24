@@ -17,45 +17,77 @@ public readonly struct ValidatedElementName
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public ValidatedElementName(string name)
     {
-        // https://html.spec.whatwg.org/#syntax-tag-name
-        // Summary of above:
-        // - Must be at least one charcter
-        // - First character must be ASCII alpha
-        // - Rest must be ASCII alpha or ASCII digit
-
-        ArgumentNullException.ThrowIfNull(name);
-        if (name.Length == 0)
-            throw new ArgumentException("name cannot be an empty string.", nameof(name));
-
         var writer = new ArrayBuilder<byte>(name.Length);
         try
         {
-            var enumerator = CodePoint.GetEnumerable(name).GetEnumerator();
-
-            if (!enumerator.MoveNext())
-                throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
-
-            var codePoint = enumerator.Current;
-
-            if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlpha) == 0)
-                throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
-
-            codePoint.WriteUtf8To(ref writer);
-
-            while (enumerator.MoveNext())
-            {
-                codePoint = enumerator.Current;
-                if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiAlphanumeric) == 0)
-                    throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
-
-                codePoint.WriteUtf8To(ref writer);
-            }
+            Validate(name, ref writer);
 
             this.value = writer.ToArray();
         }
         finally
         {
             writer.Release();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
+    /// </summary>
+    /// <param name="name">The UTF-8 bytes of the name to validate.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException">The element name is not valid.</exception>
+    public ValidatedElementName(ReadOnlySpan<char> name)
+    {
+        var writer = new ArrayBuilder<byte>(name.Length);
+        try
+        {
+            Validate(name, ref writer);
+
+            this.value = writer.ToArray();
+        }
+        finally
+        {
+            writer.Release();
+        }
+    }
+
+    internal static void Validate(string? name, ref ArrayBuilder<byte> writer)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        
+        Validate(name.AsSpan(), ref writer);
+    }
+
+    internal static void Validate(ReadOnlySpan<char> name, ref ArrayBuilder<byte> writer)
+    {
+        // https://html.spec.whatwg.org/#syntax-tag-name
+        // Summary of above:
+        // - Must be at least one charcter
+        // - First character must be ASCII alpha
+        // - Rest must be ASCII alpha or ASCII digit
+
+        if (name.IsEmpty)
+            throw new ArgumentException("name cannot be an empty string.", nameof(name));
+
+        var enumerator = CodePoint.GetEnumerable(name).GetEnumerator();
+
+        if (!enumerator.MoveNext())
+            throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
+
+        var codePoint = enumerator.Current;
+
+        if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlpha) == 0)
+            throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
+
+        codePoint.WriteUtf8To(ref writer);
+
+        while (enumerator.MoveNext())
+        {
+            codePoint = enumerator.Current;
+            if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiAlphanumeric) == 0)
+                throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
+
+            codePoint.WriteUtf8To(ref writer);
         }
     }
 

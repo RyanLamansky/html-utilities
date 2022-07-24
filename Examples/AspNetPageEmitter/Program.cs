@@ -11,18 +11,18 @@ app.MapFallback(async (HttpResponse response, CancellationToken cancellationToke
         children.Write(new ValidatedElement("head"), null, children =>
         {
             children.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
-            children.Write(new ValidatedElement("title"), null, children => children.Write(new ValidatedText("Hello World!")));
+            children.Write(new ValidatedElement("title"), null, children => children.Write("Hello World!"));
         }); //head
 
         await children.WriteAsync(new ValidatedElement("body"), null, async (children, cancellationToken) =>
         {
-            children.Write(new ValidatedElement("p"), null, children => children.Write(new ValidatedText("First bytes.")));
+            children.Write(new ValidatedElement("p"), null, children => children.Write("First bytes."));
 
             await response.BodyWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-            await Task.Delay(1000).ConfigureAwait(false);
+            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
 
-            children.Write(new ValidatedElement("p"), null, children => children.Write(new ValidatedText("Second bytes after a delay.")));
-        }).ConfigureAwait(false); // body
+            children.Write(new ValidatedElement("p"), null, children => children.Write("Second bytes after a delay."));
+        }, cancellationToken).ConfigureAwait(false); // body
     }, cancellationToken).ConfigureAwait(false);
 
     await response.BodyWriter.FlushAsync(cancellationToken).ConfigureAwait(false);

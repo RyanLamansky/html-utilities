@@ -245,7 +245,6 @@ public readonly struct ValidatedAttributeValue
         }
 
         EmitUnquoted(value, ref writer);
-        return;
     }
 
     private static void EmitUnquoted(string value, ref ArrayBuilder<byte> writer)

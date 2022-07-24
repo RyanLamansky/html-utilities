@@ -30,8 +30,19 @@ public static class ValidatedElementNameTests
     [InlineData("Html")]
     [InlineData("a")]
     [InlineData("h1")]
-    public static void ValidElementNameIsAccepted(string name)
+    public static void ValidElementNameStringIsAccepted(string name)
     {
         _ = new ValidatedElementName(name);
+    }
+
+    [Theory]
+    [InlineData("html")]
+    [InlineData("HTML")]
+    [InlineData("Html")]
+    [InlineData("a")]
+    [InlineData("h1")]
+    public static void ValidElementNameReadOnlySpanCharIsAccepted(string name)
+    {
+        _ = new ValidatedElementName(name.AsSpan());
     }
 }

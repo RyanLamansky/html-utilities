@@ -76,7 +76,7 @@ public class HtmlWriter
 
     private protected static void WriteGreaterThan(IBufferWriter<byte> writer)
     {
-        var chars = writer.GetSpan(1);
+        var chars = writer.GetSpan();
         chars[0] = (byte)'>';
         writer.Advance(1);
     }
@@ -130,6 +130,34 @@ public class HtmlWriter
     }
 
     /// <summary>
+    /// Writes an element without an end tag.
+    /// </summary>
+    /// <param name="element">The HTML element.</param>
+    public void WriteSelfClosing(string element) => WriteSelfClosing(element.AsSpan());
+
+    /// <summary>
+    /// Writes an element without an end tag.
+    /// </summary>
+    /// <param name="element">The HTML element.</param>
+    public void WriteSelfClosing(ReadOnlySpan<char> element)
+    {
+        var w = new ArrayBuilder<byte>(element.Length);
+        w.Write((byte)'<');
+
+        try
+        {
+            ValidatedElementName.Validate(element, ref w);
+            w.Write((byte)'>');
+
+            this.writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
     /// Writes a validated element without an end tag.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
@@ -166,5 +194,32 @@ public class HtmlWriter
             return;
 
         this.writer.Write(value);
+    }
+
+    /// <summary>
+    /// Writes text.
+    /// </summary>
+    /// <param name="text">The text to write.</param>
+    public void Write(string? text) => Write((ReadOnlySpan<char>)text);
+
+    /// <summary>
+    /// Writes text.
+    /// </summary>
+    /// <param name="text">The text to write.</param>
+    public void Write(ReadOnlySpan<char> text)
+    {
+        if (text.IsEmpty)
+            return;
+
+        var w = new ArrayBuilder<byte>(text.Length);
+        try
+        {
+            ValidatedText.Validate(text, ref w);
+            this.writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
     }
 }

@@ -66,7 +66,7 @@ public static class HtmlWriterTests
     }
 
     [Fact]
-    public static void WriteDocumentWithSelfClosingInBody()
+    public static void WriteDocumentWithSelfClosingValidatedInBody()
     {
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
@@ -74,6 +74,36 @@ public static class HtmlWriterTests
             writer.Write(new ValidatedElement("body"), children: writer =>
             {
                 writer.WriteSelfClosing(new ValidatedElement("p"));
+            });
+        });
+
+        Assert.Equal("<!DOCTYPE html><html><body><p></body></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static void WriteDocumentWithSelfClosingStringInBody()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        HtmlWriter.WriteDocument(buffer, null, writer =>
+        {
+            writer.Write(new ValidatedElement("body"), children: writer =>
+            {
+                writer.WriteSelfClosing("p");
+            });
+        });
+
+        Assert.Equal("<!DOCTYPE html><html><body><p></body></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static void WriteDocumentWithSelfClosingReadOnlySpanCharInBody()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        HtmlWriter.WriteDocument(buffer, null, writer =>
+        {
+            writer.Write(new ValidatedElement("body"), children: writer =>
+            {
+                writer.WriteSelfClosing("p".AsSpan());
             });
         });
 
@@ -96,7 +126,7 @@ public static class HtmlWriterTests
     }
 
     [Fact]
-    public static void WriteDocumentWithText()
+    public static void WriteDocumentWithValidatedText()
     {
         var buffer = new ArrayBufferWriter<byte>();
         HtmlWriter.WriteDocument(buffer, null, writer =>
@@ -104,6 +134,36 @@ public static class HtmlWriterTests
             writer.Write(new ValidatedElement("head"), children: writer =>
             {
                 writer.Write(new ValidatedElement("title"), null, children => children.Write(new ValidatedText("Test")));
+            });
+        });
+
+        Assert.Equal("<!DOCTYPE html><html><head><title>Test</title></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static void WriteDocumentWithStringText()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        HtmlWriter.WriteDocument(buffer, null, writer =>
+        {
+            writer.Write(new ValidatedElement("head"), children: writer =>
+            {
+                writer.Write(new ValidatedElement("title"), null, children => children.Write("Test"));
+            });
+        });
+
+        Assert.Equal("<!DOCTYPE html><html><head><title>Test</title></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static void WriteDocumentWithReadOnlySpanCharText()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        HtmlWriter.WriteDocument(buffer, null, writer =>
+        {
+            writer.Write(new ValidatedElement("head"), children: writer =>
+            {
+                writer.Write(new ValidatedElement("title"), null, children => children.Write("Test".AsSpan()));
             });
         });
 

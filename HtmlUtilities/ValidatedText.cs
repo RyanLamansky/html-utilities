@@ -29,39 +29,41 @@ public readonly struct ValidatedText
     /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
     public ValidatedText(ReadOnlySpan<char> text)
     {
-        if (text.IsEmpty)
-        {
-            this.value = null;
-            return;
-        }
-
         var writer = new ArrayBuilder<byte>(text.Length);
         try
         {
-            foreach (var codePoint in CodePoint.GetEnumerable(text))
-            {
-                var categories = codePoint.InfraCategories;
-                if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
-                    continue;
-
-                switch (codePoint.Value)
-                {
-                    case '&':
-                        writer.Write(andAmp);
-                        continue;
-                    case '<':
-                        writer.Write(andLt);
-                        continue;
-                }
-
-                codePoint.WriteUtf8To(ref writer);
-            }
+            Validate(text, ref writer);
 
             this.value = writer.ToArray();
         }
         finally
         {
             writer.Release();
+        }
+    }
+
+    internal static void Validate(ReadOnlySpan<char> text, ref ArrayBuilder<byte> writer)
+    {
+        if (text.IsEmpty)
+            return;
+
+        foreach (var codePoint in CodePoint.GetEnumerable(text))
+        {
+            var categories = codePoint.InfraCategories;
+            if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
+                continue;
+
+            switch (codePoint.Value)
+            {
+                case '&':
+                    writer.Write(andAmp);
+                    continue;
+                case '<':
+                    writer.Write(andLt);
+                    continue;
+            }
+
+            codePoint.WriteUtf8To(ref writer);
         }
     }
 
