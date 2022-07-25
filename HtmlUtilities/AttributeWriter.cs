@@ -58,29 +58,19 @@ public readonly struct AttributeWriter
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
     public void Write(string name, string? value)
     {
-        var w = new ArrayBuilder<byte>(name.Length);
+        var w = new ArrayBuilder<byte>(name.Length + (value?.Length).GetValueOrDefault() + 3);
         try
         {
             ValidatedAttributeName.Validate(name, ref w);
+
+            if (value is not null)
+                ValidatedAttributeValue.Validate(value, ref w);
+
             writer.Write(w.WrittenSpan);
         }
         finally
         {
             w.Release();
-        }
-
-        if (value is not null)
-        {
-            w = new ArrayBuilder<byte>(value.Length + 3);
-            try
-            {
-                ValidatedAttributeValue.Validate(value, ref w);
-                writer.Write(w.WrittenSpan);
-            }
-            finally
-            {
-                w.Release();
-            }
         }
     }
 }

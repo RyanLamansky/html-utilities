@@ -50,6 +50,6 @@ public static class HtmlWriterEfficiencyTests
 
         HtmlWriter.WriteDocument(counter, attributes => attributes.Write("lang", "en-us"));
 
-        Assert.Equal(5, counter.Count);
+        Assert.Equal(4, counter.Count);
     }
 }
