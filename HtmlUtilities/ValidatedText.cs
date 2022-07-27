@@ -7,9 +7,6 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedText
 {
-    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
-    private static readonly byte[] andLt = new[] { (byte)'&', (byte)'l', (byte)'t', (byte)';', };
-
     internal readonly byte[]? value;
 
     /// <summary>
@@ -56,10 +53,10 @@ public readonly struct ValidatedText
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(andAmp);
+                    writer.Write(NamedCharacterReferences.Ampersand);
                     continue;
                 case '<':
-                    writer.Write(andLt);
+                    writer.Write(NamedCharacterReferences.LessThan);
                     continue;
             }
 

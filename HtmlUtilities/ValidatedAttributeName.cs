@@ -7,7 +7,6 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeName
 {
-    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
     internal readonly byte[]? value;
 
     /// <summary>
@@ -46,7 +45,7 @@ public readonly struct ValidatedAttributeName
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(andAmp);
+                    writer.Write(NamedCharacterReferences.Ampersand);
                     continue;
 
                 // Specific characters

@@ -18,7 +18,7 @@ public static class HtmlWriterAsyncTests
     public static async Task WriteChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        await HtmlWriter.WriteDocumentAsync(buffer, children: (writer, cancellationToken) => writer.WriteAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
+        await HtmlWriter.WriteDocumentAsync(buffer, children: (writer, cancellationToken) => writer.WriteElementAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         Assert.Equal("<!DOCTYPE html><html><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
@@ -30,7 +30,7 @@ public static class HtmlWriterAsyncTests
         var array = new ValidatedElement[1];
 
         var caught = await Assert
-            .ThrowsAsync<ArgumentException>(() => HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) => writer.WriteAsync(array[0], cancellationToken: cancellationToken)))
+            .ThrowsAsync<ArgumentException>(() => HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) => writer.WriteElementAsync(array[0], cancellationToken: cancellationToken)))
             .ConfigureAwait(false);
 
         Assert.Equal("element", caught.ParamName);
@@ -49,9 +49,89 @@ public static class HtmlWriterAsyncTests
     public static async Task WriteAttributeAndChildElement()
     {
         var buffer = new ArrayBufferWriter<byte>();
-        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write("lang", "en-us"), (writer, cancellationToken) => writer.WriteAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
+        await HtmlWriter.WriteDocumentAsync(buffer, attributes => attributes.Write("lang", "en-us"), (writer, cancellationToken) => writer.WriteElementAsync(new ValidatedElement("head"), cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         Assert.Equal("<!DOCTYPE html><html lang=en-us><head></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static async Task WriteDocumentWithValidatedElementAndTextChild()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
+        {
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            {
+                writer.WriteText("Test");
+                return Task.CompletedTask;
+            }, cancellationToken: cancellationToken);
+        }).ConfigureAwait(false);
+
+        Assert.Equal("<!DOCTYPE html><html><head>Test</head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static async Task WriteDocumentWithStringElementAndTextChild()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
+        {
+            return writer.WriteElementAsync("head", children: (writer, cancellationToken) =>
+            {
+                writer.WriteText("Test");
+                return Task.CompletedTask;
+            }, cancellationToken: cancellationToken);
+        }).ConfigureAwait(false);
+
+        Assert.Equal("<!DOCTYPE html><html><head>Test</head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static async Task WriteDocumentWithReadOnlySpanElementAndTextChild()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
+        {
+            return writer.WriteElementAsync("head".AsSpan(), children: (writer, cancellationToken) =>
+            {
+                writer.WriteText("Test");
+                return Task.CompletedTask;
+            }, cancellationToken: cancellationToken);
+        }).ConfigureAwait(false);
+
+        Assert.Equal("<!DOCTYPE html><html><head>Test</head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static async Task WriteDocumentWithSelfClosingValidated()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
+        {
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            {
+                writer.WriteElementSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
+                return Task.CompletedTask;
+            }, cancellationToken: cancellationToken);
+        }).ConfigureAwait(false);
+
+        Assert.Equal("<!DOCTYPE html><html><head><meta charset=utf-8></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public static async Task WriteDocumentWithSelfClosingString()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
+        {
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            {
+                writer.WriteElementSelfClosing("meta", attributes => attributes.Write("charset", "utf-8"));
+                return Task.CompletedTask;
+            }, cancellationToken: cancellationToken);
+        }).ConfigureAwait(false);
+
+        Assert.Equal("<!DOCTYPE html><html><head><meta charset=utf-8></head></html>", Encoding.UTF8.GetString(buffer.WrittenSpan));
     }
 
     [Fact]
@@ -60,9 +140,9 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
             {
-                writer.WriteSelfClosing(new ValidatedElement("meta"), attributes => attributes.Write("charset", "utf-8"));
+                writer.WriteElementSelfClosing("meta".AsSpan(), attributes => attributes.Write("charset", "utf-8"));
                 return Task.CompletedTask;
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
@@ -76,9 +156,9 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                writer.WriteSelfClosing(new ValidatedElement("p"));
+                writer.WriteElementSelfClosing(new ValidatedElement("p"));
                 return Task.CompletedTask;
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
@@ -92,9 +172,9 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                writer.WriteSelfClosing("p");
+                writer.WriteElementSelfClosing("p");
                 return Task.CompletedTask;
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
@@ -108,9 +188,9 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                writer.WriteSelfClosing("p".AsSpan());
+                writer.WriteElementSelfClosing("p".AsSpan());
                 return Task.CompletedTask;
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
@@ -124,9 +204,9 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteAsync(new ValidatedElement("div", new ValidatedAttribute[] { ("id", "react-app") }), attributes => attributes.Write("class", "root"), cancellationToken: cancellationToken);
+                return writer.WriteElementAsync(new ValidatedElement("div", new ValidatedAttribute[] { ("id", "react-app") }), attributes => attributes.Write("class", "root"), cancellationToken: cancellationToken);
             }, cancellationToken: cancellationToken);
         }).ConfigureAwait(false);
 
@@ -139,11 +219,11 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
+                return writer.WriteElementAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
                 {
-                    writer.Write(new ValidatedText("Test"));
+                    writer.WriteText(new ValidatedText("Test"));
                     return Task.CompletedTask;
                 }, cancellationToken);
             }, cancellationToken: cancellationToken);
@@ -158,11 +238,11 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
+                return writer.WriteElementAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
                 {
-                    writer.Write("Test");
+                    writer.WriteText("Test");
                     return Task.CompletedTask;
                 }, cancellationToken);
             }, cancellationToken: cancellationToken);
@@ -177,11 +257,11 @@ public static class HtmlWriterAsyncTests
         var buffer = new ArrayBufferWriter<byte>();
         await HtmlWriter.WriteDocumentAsync(buffer, null, (writer, cancellationToken) =>
         {
-            return writer.WriteAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
+            return writer.WriteElementAsync(new ValidatedElement("head"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
+                return writer.WriteElementAsync(new ValidatedElement("title"), null, (writer, cancellationToken) =>
                 {
-                    writer.Write("Test".AsSpan());
+                    writer.WriteText("Test".AsSpan());
                     return Task.CompletedTask;
                 }, cancellationToken);
             }, cancellationToken: cancellationToken);

@@ -7,8 +7,6 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeValue
 {
-    private static readonly byte[] andAmp = new[] { (byte)'&', (byte)'a', (byte)'m', (byte)'p', (byte)';', };
-    private static readonly byte[] andQuot = new[] { (byte)'&', (byte)'q', (byte)'u', (byte)'o', (byte)'t', (byte)';', };
     internal readonly byte[]? value;
 
     /// <summary>
@@ -256,7 +254,7 @@ public readonly struct ValidatedAttributeValue
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(andAmp);
+                    writer.Write(NamedCharacterReferences.Ampersand);
                     continue;
             }
 
@@ -274,10 +272,10 @@ public readonly struct ValidatedAttributeValue
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(andAmp);
+                    writer.Write(NamedCharacterReferences.Ampersand);
                     continue;
                 case '"':
-                    writer.Write(andQuot);
+                    writer.Write(NamedCharacterReferences.Quote);
                     continue;
             }
 

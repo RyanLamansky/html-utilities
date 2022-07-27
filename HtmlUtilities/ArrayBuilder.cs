@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Numerics;
 
 namespace HtmlUtilities;
 
@@ -11,33 +10,35 @@ namespace HtmlUtilities;
 /// <remarks>This is not part of the public API because it's easy to misuse and I don't want to help everyone fix their bugs.</remarks>
 internal ref struct ArrayBuilder<T>
 {
-    private static readonly ArrayPool<T> arrayPool = ArrayPool<T>.Create();
-
     private T[] buffer;
     private int written;
 
     public ArrayBuilder(int initialCapacity)
     {
-        // Use power-of-two scaling to improve the chance of finding an existing array in the pool.
-        buffer = arrayPool.Rent((int)BitOperations.RoundUpToPowerOf2((uint)Math.Max(4, initialCapacity)));
+        // Accessing ArrayPool<T>.Shared is inlined by the JIT, which then sees a sealed implementation, allowing removal of the vtable lookups.
+        // The object returned by ArrayPool<T>.Create cannot get this benefit.
+        // Reference: https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Buffers/ArrayPool.cs
+        // Using the shared pool carries risk of malfunction if another user returns a rented array but continues to modify it.
+        // Microsoft uses ArrayPool<T>.Shared extensively within the .NET runtime, so if they're okay with this risk, I suppose I am, too.
+        buffer = ArrayPool<T>.Shared.Rent(initialCapacity);
         written = 0;
     }
 
     private void Grow(int amount)
     {
         var old = buffer;
-        buffer = arrayPool.Rent((int)BitOperations.RoundUpToPowerOf2((uint)(written + amount)));
+        buffer = ArrayPool<T>.Shared.Rent(written + amount);
         Array.Copy(old, buffer, written);
-        arrayPool.Return(old);
+        ArrayPool<T>.Shared.Return(old);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<T> GetSpan(int length)
+    public Span<T> GetSpan(int sizeHint = 0)
     {
-        if (written + length > buffer.Length)
-            Grow(length);
+        if (written + sizeHint > buffer.Length)
+            Grow(sizeHint);
 
-        return buffer.AsSpan(written, length);
+        return buffer.AsSpan(written, buffer.Length - written);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -58,12 +59,16 @@ internal ref struct ArrayBuilder<T>
         written += length;
     }
 
+    internal T[] Buffer => buffer;
+
+    internal readonly ReadOnlyMemory<T> WrittenMemory => buffer.AsMemory(0, written);
+
     public readonly ReadOnlySpan<T> WrittenSpan => buffer.AsSpan(0, written);
 
     public readonly T[] ToArray() => WrittenSpan.ToArray();
 
     public readonly void Release()
     {
-        arrayPool.Return(buffer);
+        ArrayPool<T>.Shared.Return(buffer);
     }
 }
