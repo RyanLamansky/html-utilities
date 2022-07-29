@@ -1,13 +1,13 @@
 ﻿namespace HtmlUtilities;
 
 /// <summary>
-/// The categoryies of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+/// The categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
 /// </summary>
 [Flags]
 public enum CodePointInfraCategory
 {
     /// <summary>
-    /// Not part of any defined categories, not seen in normal code paths.
+    /// Invalid--outside the range of 0 through 0x10FFFF (1114111 in decimal).
     /// </summary>
     None = 0,
     /// <summary>

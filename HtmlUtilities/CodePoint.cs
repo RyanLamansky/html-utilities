@@ -5,14 +5,16 @@ using static HtmlUtilities.CodePointInfraCategory;
 namespace HtmlUtilities;
 
 /// <summary>
-/// Converts data to or from Unicode code points.
+/// Represents a single Unicode code point as described by https://infra.spec.whatwg.org/#code-points.
+/// Also provided are several mechanisms to convert to and from <see cref="CodePoint"/> values.
 /// </summary>
-public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
+public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparable<CodePoint>, ISpanFormattable, IFormattable
 {
     /// <summary>
     /// Gets the raw Unicode code point value.
+    /// Valid code points are in the range of 0 through 0x10FFFF (1114111 in decimal), but <see cref="CodePoint"/> accepts the full range of <see cref="uint"/>.
     /// </summary>
-    public readonly uint Value { get; }
+    public uint Value { get; }
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
@@ -32,6 +34,9 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     }
 
     // This pre-caculated lookup table provides O(1) lookup time for ASCII characters.
+    // https://github.com/dotnet/runtime/issues/60948 (via https://github.com/dotnet/roslyn/pull/61414) can potentially make this faster.
+    // It would also save 512 bytes + overhead of this statically allocated array.
+    // The current approach seems to be the fastest option on .NET 6.
     private static readonly CodePointInfraCategory[] AsciiInfraCategories = new[]
     {
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
@@ -166,20 +171,18 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
 
     /// <summary>
     /// Gets the categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+    /// Code points outside the range of 0 through 0x10FFFF (1114111 in decimal) always return <see cref="None"/>.
     /// </summary>
     public CodePointInfraCategory InfraCategories
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var value = (int)Value; // int produces better CIL for using the array.
-            var categoryTable = AsciiInfraCategories;
+            // Considering that this is an HTML-oriented project, ASCII will be very common so we have a fast path for that.
+            if (Value < AsciiInfraCategories.Length)
+                return AsciiInfraCategories[Value];
 
-            // In normal situations, ASCII will be the most common code points used.
-            if (value < categoryTable.Length)
-                return categoryTable[value];
-
-            return NonAsciiInfraCategory((uint)value);
+            return NonAsciiInfraCategory(Value);
         }
     }
 
@@ -271,6 +274,14 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <inheritdoc />
     public int CompareTo(CodePoint other) => this.Value.CompareTo(other.Value);
 
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is not CodePoint codePoint)
+            throw new ArgumentException("obj is not a CodePoint.", nameof(obj));
+
+        return CompareTo(codePoint);
+    }
+
     /// <inheritdoc />
     public override bool Equals([NotNullWhen(true)] object? obj) => obj is CodePoint cp && Equals(cp);
 
@@ -307,6 +318,46 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
         chars[1] = (char)(value % 0x400 + 0xDC00);
 
         return new string(chars);
+    }
+
+    /// <inheritdoc />
+    public string ToString(string? format, IFormatProvider? formatProvider = null) =>
+        string.IsNullOrEmpty(format) ? ToString() : Value.ToString(format, formatProvider);
+
+    /// <inheritdoc />
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+    {
+        if (!format.IsEmpty)
+            return Value.TryFormat(destination, out charsWritten, format, provider);
+
+        var value = this.Value;
+
+        if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
+        {
+            if (destination.IsEmpty)
+            {
+                charsWritten = 0;
+                return false;
+            }
+
+            destination[0] = (char)value;
+
+            charsWritten = 1;
+            return true;
+        }
+
+        if (destination.Length < 2)
+        {
+            charsWritten = 0;
+            return false;
+        }
+
+        value -= 0x10000;
+        destination[0] = (char)(value / 0x400 + 0xD800);
+        destination[1] = (char)(value % 0x400 + 0xDC00);
+
+        charsWritten = 2;
+        return true;
     }
 
     /// <summary>
@@ -405,8 +456,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// </summary>
     /// <param name="source">The sequence of bytes.</param>
     /// <returns>The sequence of code points.</returns>
-    public static IEnumerable<CodePoint> DecodeUtf8(IEnumerable<byte> source)
+    public static IEnumerable<CodePoint> DecodeUtf8(IEnumerable<byte>? source)
     {
+        if (source is null)
+            yield break;
+
         using var enumerator = source.GetEnumerator();
 
         while (enumerator.MoveNext())
@@ -474,8 +528,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// </summary>
     /// <param name="source">The UTF-16 sequence.</param>
     /// <returns>The sequence of code points.</returns>
-    public static IEnumerable<CodePoint> DecodeUtf16(IEnumerable<char> source)
+    public static IEnumerable<CodePoint> DecodeUtf16(IEnumerable<char>? source)
     {
+        if (source is null)
+            yield break;
+
         using var enumerator = source.GetEnumerator();
 
         while (enumerator.MoveNext())
@@ -503,8 +560,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// <param name="source">The string to decode.</param>
     /// <returns>The sequence of code points.</returns>
     /// <remarks>This method leverages <see cref="CharEnumerator"/> for better performance than <see cref="DecodeUtf16(IEnumerable{char})"/>.</remarks>
-    public static IEnumerable<CodePoint> DecodeUtf16(string source)
+    public static IEnumerable<CodePoint> DecodeUtf16(string? source)
     {
+        if (source is null)
+            yield break;
+
         using var enumerator = source.GetEnumerator();
 
         while (enumerator.MoveNext())
@@ -531,8 +591,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
     /// <returns>The UTF-16 sequence.</returns>
-    public static IEnumerable<char> EncodeUtf16(IEnumerable<CodePoint> source)
+    public static IEnumerable<char> EncodeUtf16(IEnumerable<CodePoint>? source)
     {
+        if (source is null)
+            yield break;
+
         using var enumerator = source.GetEnumerator();
 
         while (enumerator.MoveNext())
@@ -556,8 +619,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
     /// <returns>The sequence of bytes.</returns>
-    public static IEnumerable<byte> EncodeUtf8(IEnumerable<CodePoint> source)
+    public static IEnumerable<byte> EncodeUtf8(IEnumerable<CodePoint>? source)
     {
+        if (source is null)
+            yield break;
+
         using var enumerator = source.GetEnumerator();
 
         while (enumerator.MoveNext())
@@ -657,4 +723,9 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable<CodePoint>
     /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
     /// </summary>
     public static Utf16DecoderEnumerable GetEnumerable(ReadOnlySpan<char> source) => new(source);
+
+    /// <summary>
+    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="string"/> without allocating heap memory.
+    /// </summary>
+    public static Utf16DecoderEnumerable GetEnumerable(string? source) => new(source);
 }

@@ -143,78 +143,97 @@ public readonly struct ValidatedAttributeValue
         if (value >= 0)
             return ToUtf8Array((ulong)value);
 
-        var result = new byte[value switch
-        {
-            > -10 => 3,
-            > -100 => 4,
-            > -1000 => 5,
-            > -10000 => 6,
-            > -100000 => 7,
-            > -1000000 => 8,
-            > -10000000 => 9,
-            > -100000000 => 10,
-            > -1000000000 => 11,
-            > -10000000000 => 12,
-            > -100000000000 => 13,
-            > -1000000000000 => 14,
-            > -10000000000000 => 15,
-            > -100000000000000 => 16,
-            > -1000000000000000 => 17,
-            > -10000000000000000 => 18,
-            > -100000000000000000 => 19,
-            > -1000000000000000000 => 20,
-            _ => 21,
-        }];
+        var result = new byte[CountBytes(value)];
 
-        for (var i = 2; i < result.Length; i++)
-        {
-            result[i] = (byte)('0' + Math.Abs((int)(value % 10)));
-            value /= 10;
-        }
-
-        Array.Reverse(result, 2, result.Length - 2);
-        result[0] = (byte)'=';
-        result[1] = (byte)'-';
+        ToUtf8(value, result);
 
         return result;
     }
 
     private static byte[] ToUtf8Array(ulong value)
     {
-        var result = new byte[value switch
-        {
-            < 10 => 2,
-            < 100 => 3,
-            < 1000 => 4,
-            < 10000 => 5,
-            < 100000 => 6,
-            < 1000000 => 7,
-            < 10000000 => 8,
-            < 100000000 => 9,
-            < 1000000000 => 10,
-            < 10000000000 => 11,
-            < 100000000000 => 12,
-            < 1000000000000 => 13,
-            < 10000000000000 => 14,
-            < 100000000000000 => 15,
-            < 1000000000000000 => 16,
-            < 10000000000000000 => 17,
-            < 100000000000000000 => 18,
-            < 1000000000000000000 => 19,
-            < 10000000000000000000 => 20,
-            _ => 21
-        }];
+        var result = new byte[CountBytes(value)];
 
-        for (var i = 1; i < result.Length; i++)
+        ToUtf8(value, result);
+
+        return result;
+    }
+
+    internal static int CountBytes(long value) => value switch
+    {
+        >= 0 => CountBytes((ulong)value),
+        > -10 => 3,
+        > -100 => 4,
+        > -1000 => 5,
+        > -10000 => 6,
+        > -100000 => 7,
+        > -1000000 => 8,
+        > -10000000 => 9,
+        > -100000000 => 10,
+        > -1000000000 => 11,
+        > -10000000000 => 12,
+        > -100000000000 => 13,
+        > -1000000000000 => 14,
+        > -10000000000000 => 15,
+        > -100000000000000 => 16,
+        > -1000000000000000 => 17,
+        > -10000000000000000 => 18,
+        > -100000000000000000 => 19,
+        > -1000000000000000000 => 20,
+        _ => 21,
+    };
+
+    internal static void ToUtf8(long value, Span<byte> result)
+    {
+        if (value > 0)
+        {
+            ToUtf8((ulong)value, result);
+            return;
+        }
+
+        for (var i = result.Length - 1; i > 1; i--)
+        {
+            result[i] = (byte)('0' + -(value % 10));
+            value /= 10;
+        }
+
+        result[0] = (byte)'=';
+        result[1] = (byte)'-';
+    }
+
+    internal static int CountBytes(ulong value) => value switch
+    {
+        < 10 => 2,
+        < 100 => 3,
+        < 1000 => 4,
+        < 10000 => 5,
+        < 100000 => 6,
+        < 1000000 => 7,
+        < 10000000 => 8,
+        < 100000000 => 9,
+        < 1000000000 => 10,
+        < 10000000000 => 11,
+        < 100000000000 => 12,
+        < 1000000000000 => 13,
+        < 10000000000000 => 14,
+        < 100000000000000 => 15,
+        < 1000000000000000 => 16,
+        < 10000000000000000 => 17,
+        < 100000000000000000 => 18,
+        < 1000000000000000000 => 19,
+        < 10000000000000000000 => 20,
+        _ => 21
+    };
+
+    internal static void ToUtf8(ulong value, Span<byte> result)
+    {
+        for (var i = result.Length - 1; i > 0; i--)
         {
             result[i] = (byte)('0' + (int)(value % 10));
             value /= 10;
         }
 
-        Array.Reverse(result, 1, result.Length - 1);
         result[0] = (byte)'=';
-
-        return result;
     }
 
     internal static void Validate(string value, ref ArrayBuilder<byte> writer)
@@ -223,7 +242,6 @@ public readonly struct ValidatedAttributeValue
         {
             switch (codePoint.Value)
             {
-                // Other characters that require quoting
                 case '"':
                 case '\'':
                 case '=':

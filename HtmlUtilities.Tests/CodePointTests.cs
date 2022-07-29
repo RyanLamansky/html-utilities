@@ -1,95 +1,41 @@
 ﻿using static System.Text.Encoding;
+using static HtmlUtilities.CodePointInfraCategory;
 
 namespace HtmlUtilities;
 
 public static class CodePointTests
 {
     [Theory]
-    [InlineData(0x00, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace)]
-    [InlineData(0x09, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace
-        | CodePointInfraCategory.AsciiTabOrNewline
-        | CodePointInfraCategory.AsciiWhitespace)]
-    [InlineData(0x0A, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace
-        | CodePointInfraCategory.AsciiTabOrNewline
-        | CodePointInfraCategory.AsciiWhitespace)]
-    [InlineData(0x0C, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace
-        | CodePointInfraCategory.AsciiWhitespace)]
-    [InlineData(0x0D, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace
-        | CodePointInfraCategory.AsciiTabOrNewline
-        | CodePointInfraCategory.AsciiWhitespace)]
-    [InlineData(0x1F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control
-        | CodePointInfraCategory.C0Control
-        | CodePointInfraCategory.C0ControlOrSpace)]
-    [InlineData(' ', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.C0ControlOrSpace
-        | CodePointInfraCategory.AsciiWhitespace)]
-    [InlineData('0', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiDigit
-        | CodePointInfraCategory.AsciiUpperHexDigit
-        | CodePointInfraCategory.AsciiLowerHexDigit
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('9', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiDigit
-        | CodePointInfraCategory.AsciiUpperHexDigit
-        | CodePointInfraCategory.AsciiLowerHexDigit
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('A', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiUpperHexDigit
-        | CodePointInfraCategory.AsciiHexDigit
-        | CodePointInfraCategory.AsciiUpperAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('F', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiUpperHexDigit
-        | CodePointInfraCategory.AsciiHexDigit
-        | CodePointInfraCategory.AsciiUpperAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('Z', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiUpperAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('a', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiLowerHexDigit
-        | CodePointInfraCategory.AsciiHexDigit
-        | CodePointInfraCategory.AsciiLowerAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('f', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiLowerHexDigit
-        | CodePointInfraCategory.AsciiHexDigit
-        | CodePointInfraCategory.AsciiLowerAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData('z', CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.AsciiLowerAlpha
-        | CodePointInfraCategory.AsciiAlpha
-        | CodePointInfraCategory.AsciiAlphanumeric)]
-    [InlineData(0x7F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Ascii
-        | CodePointInfraCategory.Control)]
-    [InlineData(0x9F, CodePointInfraCategory.ScalarValue | CodePointInfraCategory.Control)]
+    [InlineData(0x00, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace)]
+    [InlineData(0x09, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace | AsciiTabOrNewline | AsciiWhitespace)]
+    [InlineData(0x0A, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace | AsciiTabOrNewline | AsciiWhitespace)]
+    [InlineData(0x0C, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace | AsciiWhitespace)]
+    [InlineData(0x0D, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace | AsciiTabOrNewline | AsciiWhitespace)]
+    [InlineData(0x1F, ScalarValue | Ascii | Control | C0Control | C0ControlOrSpace)]
+    [InlineData(' ', ScalarValue | Ascii | C0ControlOrSpace | AsciiWhitespace)]
+    [InlineData('0', ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric)]
+    [InlineData('9', ScalarValue | Ascii | AsciiDigit | AsciiUpperHexDigit | AsciiLowerHexDigit | AsciiAlphanumeric)]
+    [InlineData('A', ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData('F', ScalarValue | Ascii | AsciiUpperHexDigit | AsciiHexDigit | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData('Z', ScalarValue | Ascii | AsciiUpperAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData('a', ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData('f', ScalarValue | Ascii | AsciiLowerHexDigit | AsciiHexDigit | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData('z', ScalarValue | Ascii | AsciiLowerAlpha | AsciiAlpha | AsciiAlphanumeric)]
+    [InlineData(0x7F, ScalarValue | Ascii | Control)]
+    [InlineData(0x9F, ScalarValue | Control)]
+    [InlineData('⌨', ScalarValue)]
+    [InlineData(0xD800, Surrogate)]
+    [InlineData(0xDFFF, Surrogate)]
+    [InlineData(0xFFFE, ScalarValue | NonCharacter)]
+    [InlineData(0x110000, None)]
+    [InlineData(-1, None)]
     public static void CodePointsHaveCorrectInfraCategories(int codePoint, CodePointInfraCategory categories)
     {
         Assert.Equal(categories, new CodePoint(codePoint).InfraCategories);
     }
 
-    public static readonly object[][] Utf8ValidTestCases = new object[][] {
+    public static readonly object?[][] Utf8ValidTestCases = new object?[][] {
+        new object?[] { null, Array.Empty<CodePoint>() },
         new object[] { "$", new CodePoint[] { 0x0024 } },
         new object[] { "£", new CodePoint[] { 0x00A3 } },
         new object[] { "ह", new CodePoint[] { 0x0939 } },
@@ -100,19 +46,20 @@ public static class CodePointTests
 
     [Theory]
     [MemberData(nameof(Utf8ValidTestCases))]
-    public static void DecodeUtf8FromEnumerableBytes(string value, CodePoint[] expected)
+    public static void DecodeUtf8FromEnumerableBytes(string? value, CodePoint[] expected)
     {
-        Assert.Equal(expected, CodePoint.DecodeUtf8(UTF8.GetBytes(value)).ToArray());
+        Assert.Equal(expected, CodePoint.DecodeUtf8(value is null ? null : UTF8.GetBytes(value)).ToArray());
     }
 
     [Theory]
     [MemberData(nameof(Utf8ValidTestCases))]
-    public static void EncodeUtf8FromEnumerableCodePoints(string expected, CodePoint[] value)
+    public static void EncodeUtf8FromEnumerableCodePoints(string? expected, CodePoint[] value)
     {
-        Assert.Equal(expected, UTF8.GetString(CodePoint.EncodeUtf8(value).ToArray()));
+        Assert.Equal(expected is null ? "" : expected, UTF8.GetString(CodePoint.EncodeUtf8(value).ToArray()));
     }
 
-    public static readonly object[][] Utf16TestCases = new object[][] {
+    public static readonly object?[][] Utf16TestCases = new object?[][] {
+        new object?[] { null, Array.Empty<CodePoint>() },
         new object[] { "$", new CodePoint[] { 0x0024 } },
         new object[] { "€", new CodePoint[] { 0x20AC } },
         new object[] { "𐐷", new CodePoint[] { 0x10437 } },
@@ -121,23 +68,23 @@ public static class CodePointTests
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
-    public static void DecodeUtf16FromString(string value, CodePoint[] expected)
+    public static void DecodeUtf16FromString(string? value, CodePoint[] expected)
     {
         Assert.Equal(expected, CodePoint.DecodeUtf16(value).ToArray());
     }
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
-    public static void DecodeUtf16FromEnumerableCharacters(string value, CodePoint[] expected)
+    public static void DecodeUtf16FromEnumerableCharacters(string? value, CodePoint[] expected)
     {
-        Assert.Equal(expected, CodePoint.DecodeUtf16((IEnumerable<char>)value).ToArray());
+        Assert.Equal(expected, CodePoint.DecodeUtf16((IEnumerable<char>?)value).ToArray());
     }
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
-    public static void EncodeUtf16FromEnumerableCodePoints(string expected, CodePoint[] value)
+    public static void EncodeUtf16FromEnumerableCodePoints(string? expected, CodePoint[] value)
     {
-        Assert.Equal(expected, CodePoint.EncodeUtf16(value).ToArray());
+        Assert.Equal(expected is null ? "" : expected, CodePoint.EncodeUtf16(value).ToArray());
     }
 
     [Theory]
@@ -152,6 +99,12 @@ public static class CodePointTests
         Assert.Equal(UTF8.GetByteCount(value), CodePoint.DecodeUtf16(value).Sum(cp => cp.Utf8ByteCount));
     }
 
+    [Fact]
+    public static void Utf8ByteCountIsZeroForInvalidCodePoints()
+    {
+        Assert.Equal(0, new CodePoint(0x110000).Utf8ByteCount);
+    }
+
     [Theory]
     [InlineData("$")]
     [InlineData("£")]
@@ -162,6 +115,37 @@ public static class CodePointTests
     public static void Utf16ByteCount(string value)
     {
         Assert.Equal(Unicode.GetByteCount(value), CodePoint.DecodeUtf16(value).Sum(cp => cp.Utf16ByteCount));
+    }
+
+    [Fact]
+    public static void Utf16ByteCountIsZeroForInvalidCodePoints()
+    {
+        Assert.Equal(0, new CodePoint(0x110000).Utf16ByteCount);
+    }
+
+    [Fact]
+    public static void CompareTo()
+    {
+        const int test = 5;
+        Assert.Equal(test.CompareTo(test), new CodePoint(test).CompareTo(test));
+        Assert.Equal(test.CompareTo(test + 1), new CodePoint(test).CompareTo(test + 1));
+        Assert.Equal(test.CompareTo(test - 1), new CodePoint(test).CompareTo(test - 1));
+    }
+
+    [Fact]
+    public static void CompareToObject()
+    {
+        const int test = 5;
+        Assert.Equal(test.CompareTo(test), ((IComparable)new CodePoint(test)).CompareTo(new CodePoint(test)));
+        Assert.Equal(test.CompareTo(test + 1), ((IComparable)new CodePoint(test)).CompareTo(new CodePoint(test + 1)));
+        Assert.Equal(test.CompareTo(test - 1), ((IComparable)new CodePoint(test)).CompareTo(new CodePoint(test - 1)));
+    }
+
+    [Fact]
+    public static void CompareToObjectWrongType()
+    {
+        var x = Assert.Throws<ArgumentException>(() => ((IComparable)new CodePoint(5)).CompareTo(5));
+        Assert.Equal("obj", x.ParamName);
     }
 
     [Fact]
@@ -187,6 +171,92 @@ public static class CodePointTests
     public static void ConvertToString(string expected, int codePoint)
     {
         Assert.Equal(expected, ((CodePoint)codePoint).ToString());
+    }
+
+    [Theory]
+    [InlineData(0x0024)]
+    [InlineData(0x20AC)]
+    [InlineData(0x10437)]
+    [InlineData(0x24B62)]
+    public static void ConvertToStringWithFormatNullMatchesToString(int codePoint)
+    {
+        var cp = new CodePoint(codePoint);
+        Assert.Equal(cp.ToString(), cp.ToString(null, null));
+    }
+
+    [Theory]
+    [InlineData(0x0024)]
+    [InlineData(0x20AC)]
+    [InlineData(0x10437)]
+    [InlineData(0x24B62)]
+    public static void ConvertToStringWithFormatNullAndDefaultedFormatProviderMatchesToString(int codePoint)
+    {
+        var cp = new CodePoint(codePoint);
+        Assert.Equal(cp.ToString(), cp.ToString(null));
+    }
+
+    [Theory]
+    [InlineData(0x0024)]
+    [InlineData(0x20AC)]
+    [InlineData(0x10437)]
+    [InlineData(0x24B62)]
+    public static void ConvertToStringWithFormatBlankMatchesToString(int codePoint)
+    {
+        var cp = new CodePoint(codePoint);
+        Assert.Equal(cp.ToString(), cp.ToString("", null));
+    }
+
+    [Theory]
+    [InlineData(0x0024)]
+    [InlineData(0x20AC)]
+    [InlineData(0x10437)]
+    [InlineData(0x24B62)]
+    public static void ConvertToStringWithFormatX2MatchesUInt32ToStringX2(int codePoint)
+    {
+        var cp = new CodePoint(codePoint);
+        Assert.Equal(codePoint.ToString("X2"), cp.ToString("X2", null));
+    }
+
+    [Theory]
+    [InlineData("$", 0x0024)]
+    [InlineData("€", 0x20AC)]
+    [InlineData("𐐷", 0x10437)]
+    [InlineData("𤭢", 0x24B62)]
+    public static void TrySpanFormattable(string expected, int codePoint)
+    {
+        Span<char> destination = stackalloc char[2];
+        Assert.True(new CodePoint(codePoint).TryFormat(destination, out var charsWritten));
+        Assert.Equal(expected.Length, charsWritten);
+        Assert.Equal(expected, new string(destination[..charsWritten]));
+    }
+
+    [Fact]
+    public static void TrySpanFormattableTooShortIsFalse()
+    {
+        Assert.False(new CodePoint('T').TryFormat(Span<char>.Empty, out var charsWritten));
+        Assert.False(new CodePoint(0x24B62).TryFormat(Span<char>.Empty, out charsWritten));
+        
+        Span<char> destination = stackalloc char[1];
+        Assert.False(new CodePoint(0x24B62).TryFormat(destination, out charsWritten));
+    }
+
+    [Theory]
+    [InlineData(0x0024)]
+    [InlineData(0x20AC)]
+    [InlineData(0x10437)]
+    [InlineData(0x24B62)]
+    public static void TrySpanFormattableWithFormatX2MatchesUInt32ToStringX22(int codePoint)
+    {
+        Span<char> destination = stackalloc char[10];
+
+        Assert.True(codePoint.TryFormat(destination, out var charsWritten, "X2"));
+        var expected = new string(destination[..charsWritten]);
+        
+        var cp = new CodePoint(codePoint);
+        Assert.True(cp.TryFormat(destination, out charsWritten, "X2", null));
+        var actual = new string(destination[..charsWritten]);
+
+        Assert.Equal(expected, actual);
     }
 
     [Fact]
@@ -269,10 +339,21 @@ public static class CodePointTests
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
-    public static void DecodeUtf16FromStackEnumerableCharacters(string value, CodePoint[] expected)
+    public static void DecodeUtf16FromStackString(string? value, CodePoint[] expected)
     {
         var results = new List<CodePoint>();
         foreach (var codePoint in CodePoint.GetEnumerable(value))
+            results.Add(codePoint);
+
+        Assert.Equal(expected, results);
+    }
+
+    [Theory]
+    [MemberData(nameof(Utf16TestCases))]
+    public static void DecodeUtf16FromStackReadOnlySpan(string? value, CodePoint[] expected)
+    {
+        var results = new List<CodePoint>();
+        foreach (var codePoint in CodePoint.GetEnumerable(value.AsSpan()))
             results.Add(codePoint);
 
         Assert.Equal(expected, results);
