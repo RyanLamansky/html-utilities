@@ -15,7 +15,7 @@ public readonly struct ValidatedAttributeName
     /// <param name="name">The name to validate.</param>
     /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public ValidatedAttributeName(string name)
+    public ValidatedAttributeName(ReadOnlySpan<char> name)
     {
         var writer = new ArrayBuilder<byte>(name.Length);
         try
@@ -29,9 +29,18 @@ public readonly struct ValidatedAttributeName
         }
     }
 
-    internal static void Validate(string name, ref ArrayBuilder<byte> writer)
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
+    /// </summary>
+    /// <param name="name">The name to validate.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public ValidatedAttributeName(string name) : this((ReadOnlySpan<char>)(name ?? throw new ArgumentNullException(nameof(name))))
     {
-        ArgumentNullException.ThrowIfNull(name);
+    }
+
+    internal static void Validate(ReadOnlySpan<char> name, ref ArrayBuilder<byte> writer)
+    {
         if (name.Length == 0)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 

@@ -69,6 +69,9 @@ public readonly struct ValidatedElementName
         if (name.IsEmpty)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
+        if (name.Length == 6 && name[0] is 'S' or 's' && name[1] is 'C' or 'c' && name[2] is 'R' or 'r' && name[3] is 'I' or 'i' && name[4] is 'P' or 'p' && name[5] is 'T' or 't')
+            throw new ArgumentException("Use ValidatedScript or WriteScript for script elements.", nameof(name));
+
         var enumerator = CodePoint.GetEnumerable(name).GetEnumerator();
 
         if (!enumerator.MoveNext())

@@ -353,4 +353,19 @@ public class HtmlWriter
             w.Release();
         }
     }
+
+    /// <summary>
+    /// Writes a pre-validated script element.
+    /// </summary>
+    /// <param name="script">The script element to write.</param>
+    /// <exception cref="ArgumentException"><paramref name="script"/> was never initialized.</exception>
+    public void WriteScript(ValidatedScript script)
+    {
+        if (script.value is null)
+            throw new ArgumentException("script was never initialized.", nameof(script));
+
+        writer.Write(new[] { (byte)'<', (byte)'s', (byte)'c', (byte)'r', (byte)'i', (byte)'p', (byte)'t' });
+        writer.Write(script.value);
+        writer.Write(new[] { (byte)'<', (byte)'/', (byte)'s', (byte)'c', (byte)'r', (byte)'i', (byte)'p', (byte)'t', (byte)'>' });
+    }
 }

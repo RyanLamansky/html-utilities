@@ -19,9 +19,14 @@ public static class ValidatedElementNameTests
     [InlineData("a ")]
     [InlineData("Η")] // Greek Capital Letter Eta
     [InlineData("🙂")]
+    [InlineData("script")]
+    [InlineData("Script")]
+    [InlineData("ScripT")]
+    [InlineData("SCRIPT")]
     public static void InvalidElementNameIsBlocked(string name)
     {
-        _ = Assert.Throws<ArgumentException>(() => new ValidatedElementName(name));
+        var x = Assert.Throws<ArgumentException>(() => new ValidatedElementName(name));
+        Assert.Equal("name", x.ParamName);
     }
 
     [Theory]

@@ -10,6 +10,32 @@ public readonly struct ValidatedAttributeValue
     internal readonly byte[]? value;
 
     /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
+    /// </summary>
+    /// <param name="value">The value to prepare as an attribute.</param>
+    public ValidatedAttributeValue(ReadOnlySpan<char> value)
+    {
+        // See https://html.spec.whatwg.org/#attributes-2 for reference.
+
+        if (value.Length == 0)
+        {
+            this.value = new[] { (byte)'=', (byte)'"', (byte)'"' };
+            return;
+        }
+
+        var writer = new ArrayBuilder<byte>(value.Length);
+        try
+        {
+            Validate(value, ref writer);
+            this.value = writer.ToArray();
+        }
+        finally
+        {
+            writer.Release();
+        }
+    }
+
+    /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided string.
     /// </summary>
     /// <param name="value">The value to prepare as an attribute.</param>
@@ -236,7 +262,7 @@ public readonly struct ValidatedAttributeValue
         result[0] = (byte)'=';
     }
 
-    internal static void Validate(string value, ref ArrayBuilder<byte> writer)
+    internal static void Validate(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
         foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
@@ -263,7 +289,7 @@ public readonly struct ValidatedAttributeValue
         EmitUnquoted(value, ref writer);
     }
 
-    private static void EmitUnquoted(string value, ref ArrayBuilder<byte> writer)
+    private static void EmitUnquoted(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
         writer.Write((byte)'=');
 
@@ -280,7 +306,7 @@ public readonly struct ValidatedAttributeValue
         }
     }
 
-    private static void EmitQuoted(string value, ref ArrayBuilder<byte> writer)
+    private static void EmitQuoted(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
         writer.Write((byte)'=');
         writer.Write((byte)'"');
