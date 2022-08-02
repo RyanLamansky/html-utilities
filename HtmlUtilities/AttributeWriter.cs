@@ -40,9 +40,8 @@ public readonly struct AttributeWriter
     /// Writes an attribute that consists only of a name, no value.
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name)
+    public void Write(ReadOnlySpan<char> name)
     {
         var w = new ArrayBuilder<byte>(name.Length);
         try
@@ -62,13 +61,10 @@ public readonly struct AttributeWriter
     /// <param name="name">The validated attribute name to write.</param>
     /// <param name="value">The value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
-    public void Write(ValidatedAttributeName name, string? value)
+    public void Write(ValidatedAttributeName name, ReadOnlySpan<char> value)
     {
         Write(name);
         var writer = this.writer;
-
-        if (value is null)
-            return;
 
         var w = new ArrayBuilder<byte>(value.Length + 3);
         try
@@ -88,17 +84,14 @@ public readonly struct AttributeWriter
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
     /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, string? value)
+    public void Write(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
-        var w = new ArrayBuilder<byte>(name.Length + (value?.Length).GetValueOrDefault() + 3);
+        var w = new ArrayBuilder<byte>(name.Length + value.Length + 3);
         try
         {
             ValidatedAttributeName.Validate(name, ref w);
-
-            if (value is not null)
-                ValidatedAttributeValue.Validate(value, ref w);
+            ValidatedAttributeValue.Validate(value, ref w);
 
             writer.Write(w.WrittenSpan);
         }
@@ -107,78 +100,6 @@ public readonly struct AttributeWriter
             w.Release();
         }
     }
-
-    /// <summary>
-    /// Writes a validated attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(ValidatedAttributeName name, int value) => Write(name, (long)value);
-
-    /// <summary>
-    /// Writes an attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, int value) => Write(name, (long)value);
-
-    /// <summary>
-    /// Writes a validated attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(ValidatedAttributeName name, int? value) => Write(name, (long?)value);
-
-    /// <summary>
-    /// Writes an attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, int? value) => Write(name, (long?)value);
-
-    /// <summary>
-    /// Writes a validated attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(ValidatedAttributeName name, uint value) => Write(name, (ulong)value);
-
-    /// <summary>
-    /// Writes an attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, uint value) => Write(name, (ulong)value);
-
-    /// <summary>
-    /// Writes a validated attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(ValidatedAttributeName name, uint? value) => Write(name, (ulong?)value);
-
-    /// <summary>
-    /// Writes an attribute name and value pair.
-    /// </summary>
-    /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, uint? value) => Write(name, (ulong?)value);
 
     /// <summary>
     /// Writes a validated attribute name and value pair.
@@ -200,7 +121,7 @@ public readonly struct AttributeWriter
     /// Writes a validated attribute name and optional value.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">If provided the value to write.</param>
+    /// <param name="value">If provided, the value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public void Write(ValidatedAttributeName name, long? value)
     {
@@ -215,9 +136,8 @@ public readonly struct AttributeWriter
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
     /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, long value)
+    public void Write(ReadOnlySpan<char> name, long value)
     {
         var byteCount = ValidatedAttributeValue.CountBytes(value);
         var w = new ArrayBuilder<byte>(name.Length + byteCount + 3);
@@ -240,10 +160,9 @@ public readonly struct AttributeWriter
     /// Writes an attribute name and optional value.
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">If provided the value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <param name="value">If provided, the value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, long? value)
+    public void Write(ReadOnlySpan<char> name, long? value)
     {
         if (value is null)
             Write(name);
@@ -272,9 +191,8 @@ public readonly struct AttributeWriter
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>
     /// <param name="value">The value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, ulong value)
+    public void Write(ReadOnlySpan<char> name, ulong value)
     {
         var byteCount = ValidatedAttributeValue.CountBytes(value);
         var w = new ArrayBuilder<byte>(name.Length + byteCount + 3);
@@ -297,12 +215,12 @@ public readonly struct AttributeWriter
     /// Writes a validated attribute name and optional value.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>
-    /// <param name="value">If provided the value to write.</param>
+    /// <param name="value">If provided, the value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public void Write(ValidatedAttributeName name, ulong? value)
     {
         if (value is null)
-            Write(name);
+            Write(name, ReadOnlySpan<char>.Empty);
         else
             Write(name, value.GetValueOrDefault());
     }
@@ -311,13 +229,12 @@ public readonly struct AttributeWriter
     /// Writes an attribute name and optional value.
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
-    /// <param name="value">If provided the value to write.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
+    /// <param name="value">If provided, the value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void Write(string name, ulong? value)
+    public void Write(ReadOnlySpan<char> name, ulong? value)
     {
         if (value is null)
-            Write(name);
+            Write(name, ReadOnlySpan<char>.Empty);
         else
             Write(name, value.GetValueOrDefault());
     }
@@ -339,9 +256,8 @@ public readonly struct AttributeWriter
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
     /// <param name="value">When true, <paramref name="name"/> is written, otherwise false.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public void WriteIfTrue(string name, bool value)
+    public void WriteIfTrue(ReadOnlySpan<char> name, bool value)
     {
         if (value)
             Write(name);

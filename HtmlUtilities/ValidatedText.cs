@@ -14,16 +14,6 @@ public readonly struct ValidatedText
     /// </summary>
     /// <param name="text">The text to use.</param>
     /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
-    public ValidatedText(string? text)
-        : this((ReadOnlySpan<char>)text)
-    {
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedText"/> with the provided content.
-    /// </summary>
-    /// <param name="text">The text to use.</param>
-    /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
     public ValidatedText(ReadOnlySpan<char> text)
     {
         var writer = new ArrayBuilder<byte>(text.Length);

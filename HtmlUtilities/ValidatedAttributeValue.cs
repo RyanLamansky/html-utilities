@@ -7,7 +7,9 @@ namespace HtmlUtilities;
 /// </summary>
 public readonly struct ValidatedAttributeValue
 {
-    internal readonly byte[]? value;
+    private static readonly byte[] Empty = new[] { (byte)'=', (byte)'"', (byte)'"' };
+
+internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
@@ -19,42 +21,9 @@ public readonly struct ValidatedAttributeValue
 
         if (value.Length == 0)
         {
-            this.value = new[] { (byte)'=', (byte)'"', (byte)'"' };
+            this.value = Empty;
             return;
         }
-
-        var writer = new ArrayBuilder<byte>(value.Length);
-        try
-        {
-            Validate(value, ref writer);
-            this.value = writer.ToArray();
-        }
-        finally
-        {
-            writer.Release();
-        }
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided string.
-    /// </summary>
-    /// <param name="value">The value to prepare as an attribute.</param>
-    public ValidatedAttributeValue(string? value)
-    {
-        // See https://html.spec.whatwg.org/#attributes-2 for reference.
-
-        if (value is null)
-        {
-            this.value = null;
-            return;
-        }
-
-        if (value.Length == 0)
-        {
-            this.value = new[] { (byte)'=', (byte)'"', (byte)'"' };
-            return;
-        }
-
 
         var writer = new ArrayBuilder<byte>(value.Length);
         try
@@ -85,7 +54,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = null;
+            this.value = Empty;
             return;
         }
 
@@ -109,7 +78,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = null;
+            this.value = Empty;
             return;
         }
 
@@ -133,7 +102,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = Array.Empty<byte>();
+            this.value = Empty;
             return;
         }
 
@@ -157,7 +126,7 @@ public readonly struct ValidatedAttributeValue
     {
         if (value is null)
         {
-            this.value = Array.Empty<byte>();
+            this.value = Empty;
             return;
         }
 

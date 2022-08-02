@@ -78,12 +78,6 @@ public class HtmlWriter
     /// Writes an element with no attributes or children.
     /// </summary>
     /// <param name="element">The HTML element.</param>
-    public void WriteElement(string element) => WriteElement(element.AsSpan());
-
-    /// <summary>
-    /// Writes an element with no attributes or children.
-    /// </summary>
-    /// <param name="element">The HTML element.</param>
     public void WriteElement(ReadOnlySpan<char> element)
     {
         var elementNameWriter = new ArrayBuilder<byte>(element.Length);
@@ -159,16 +153,6 @@ public class HtmlWriter
     /// <summary>
     /// Writes an element with optional attributes and child content.
     /// </summary>
-    /// <param name="name">The HTML element.</param>
-    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
-    /// <param name="children">If provided, writes child elements.</param>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public void WriteElement(string name, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
-        => WriteElement(name.AsSpan(), attributes, children);
-
-    /// <summary>
-    /// Writes an element with optional attributes and child content.
-    /// </summary>
     /// <param name="name">The HTML element name.</param>
     /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
@@ -225,13 +209,6 @@ public class HtmlWriter
     /// </summary>
     /// <param name="name">The HTML element name.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public void WriteElementSelfClosing(string name) => WriteElementSelfClosing(name.AsSpan());
-
-    /// <summary>
-    /// Writes an element without an end tag.
-    /// </summary>
-    /// <param name="name">The HTML element name.</param>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public void WriteElementSelfClosing(ReadOnlySpan<char> name)
     {
         var w = new ArrayBuilder<byte>(name.Length);
@@ -282,14 +259,6 @@ public class HtmlWriter
     /// <param name="name">The HTML element name.</param>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public void WriteElementSelfClosing(string name, Action<AttributeWriter>? attributes = null) => WriteElementSelfClosing(name.AsSpan(), attributes);
-
-    /// <summary>
-    /// Writes an element without an end tag.
-    /// </summary>
-    /// <param name="name">The HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element.</param>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public void WriteElementSelfClosing(ReadOnlySpan<char> name, Action<AttributeWriter>? attributes = null)
     {
         var w = new ArrayBuilder<byte>(name.Length);
@@ -326,12 +295,6 @@ public class HtmlWriter
 
         this.writer.Write(value);
     }
-
-    /// <summary>
-    /// Writes text.
-    /// </summary>
-    /// <param name="text">The text to write.</param>
-    public void WriteText(string? text) => WriteText(text.AsSpan());
 
     /// <summary>
     /// Writes text.

@@ -24,7 +24,7 @@ public readonly struct ValidatedElement
     /// </summary>
     /// <param name="name">An element name to be validated and used.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElement(string name)
+    public ValidatedElement(ReadOnlySpan<char> name)
         : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)null)
     {
     }
@@ -101,7 +101,7 @@ public readonly struct ValidatedElement
     /// <param name="name">An element name to be validated and used.</param>
     /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElement(string name, params ValidatedAttribute[]? attributes)
+    public ValidatedElement(ReadOnlySpan<char> name, params ValidatedAttribute[]? attributes)
         : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)attributes)
     {
     }
@@ -112,7 +112,7 @@ public readonly struct ValidatedElement
     /// <param name="name">An element name to be validated and used.</param>
     /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElement(string name, IEnumerable<ValidatedAttribute>? attributes)
+    public ValidatedElement(ReadOnlySpan<char> name, IEnumerable<ValidatedAttribute>? attributes)
         : this(new ValidatedElementName(name), attributes)
     {
     }

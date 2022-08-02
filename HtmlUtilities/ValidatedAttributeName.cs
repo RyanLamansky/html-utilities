@@ -13,7 +13,6 @@ public readonly struct ValidatedAttributeName
     /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
     /// </summary>
     /// <param name="name">The name to validate.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
     public ValidatedAttributeName(ReadOnlySpan<char> name)
     {
@@ -27,16 +26,6 @@ public readonly struct ValidatedAttributeName
         {
             writer.Release();
         }
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeName"/> value from the provided name.
-    /// </summary>
-    /// <param name="name">The name to validate.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
-    public ValidatedAttributeName(string name) : this((ReadOnlySpan<char>)(name ?? throw new ArgumentNullException(nameof(name))))
-    {
     }
 
     internal static void Validate(ReadOnlySpan<char> name, ref ArrayBuilder<byte> writer)
@@ -82,5 +71,5 @@ public readonly struct ValidatedAttributeName
     /// Creates a new <see cref="ValidatedAttribute"/> from the provided validated name and no value.
     /// </summary>
     /// <param name="name">A validated name.</param>
-    public static implicit operator ValidatedAttribute(ValidatedAttributeName name) => new ValidatedAttribute(name);
+    public static implicit operator ValidatedAttribute(ValidatedAttributeName name) => new(name);
 }

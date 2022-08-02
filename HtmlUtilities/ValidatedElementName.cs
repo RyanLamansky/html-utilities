@@ -13,28 +13,6 @@ public readonly struct ValidatedElementName
     /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
     /// </summary>
     /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElementName(string name)
-    {
-        var writer = new ArrayBuilder<byte>(name.Length);
-        try
-        {
-            Validate(name, ref writer);
-
-            this.value = writer.ToArray();
-        }
-        finally
-        {
-            writer.Release();
-        }
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
-    /// </summary>
-    /// <param name="name">The UTF-8 bytes of the name to validate.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> cannot be null.</exception>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public ValidatedElementName(ReadOnlySpan<char> name)
     {
@@ -49,13 +27,6 @@ public readonly struct ValidatedElementName
         {
             writer.Release();
         }
-    }
-
-    internal static void Validate(string? name, ref ArrayBuilder<byte> writer)
-    {
-        ArgumentNullException.ThrowIfNull(name);
-        
-        Validate(name.AsSpan(), ref writer);
     }
 
     internal static void Validate(ReadOnlySpan<char> name, ref ArrayBuilder<byte> writer)

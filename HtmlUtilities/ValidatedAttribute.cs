@@ -53,19 +53,10 @@ public readonly struct ValidatedAttribute
     }
 
     /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
-    /// </summary>
-    /// <param name="name">A name to be validated.</param>
-    /// <param name="value">A value to be validated.</param>
-    public ValidatedAttribute(string name, string? value) : this(new ValidatedAttributeName(name), new ValidatedAttributeValue(value))
-    {
-    }
-
-    /// <summary>
     /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
     /// </summary>
     /// <param name="name">A name to be validated.</param>
-    public ValidatedAttribute(string name) : this(new ValidatedAttributeName(name))
+    public ValidatedAttribute(ReadOnlySpan<char> name) : this(new ValidatedAttributeName(name))
     {
     }
 
@@ -80,6 +71,12 @@ public readonly struct ValidatedAttribute
     /// </summary>
     /// <param name="name">A name to be validated.</param>
     public static implicit operator ValidatedAttribute(string name) => new(name);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
+    /// </summary>
+    /// <param name="name">A name to be validated.</param>
+    public static implicit operator ValidatedAttribute(ReadOnlySpan<char> name) => new(name);
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.

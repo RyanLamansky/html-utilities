@@ -723,9 +723,4 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
     /// </summary>
     public static Utf16DecoderEnumerable GetEnumerable(ReadOnlySpan<char> source) => new(source);
-
-    /// <summary>
-    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="string"/> without allocating heap memory.
-    /// </summary>
-    public static Utf16DecoderEnumerable GetEnumerable(string? source) => new(source);
 }

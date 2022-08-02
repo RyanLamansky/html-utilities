@@ -61,30 +61,6 @@ public sealed class HtmlWriterAsync : HtmlWriter
 
     /// <summary>
     /// Writes an element with optional attributes and child content.
-    /// If there are no children (for example, <paramref name="children"/> is null or writes nothing), use <see cref="HtmlWriter.WriteElement(string, Action{AttributeWriter}?, Action{HtmlWriter}?)"/> instead.
-    /// </summary>
-    /// <param name="name">The HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
-    /// <param name="children">
-    /// Writes child elements.
-    /// This parameter is technically optional to provide symmetry with <see cref="HtmlWriter.WriteElement(string, Action{AttributeWriter}?, Action{HtmlWriter}?)"/>.
-    /// However, this method should not be used without children--it will run synchronously by forwarding to the non-async version of this API.
-    /// </param>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>A task that represents the operation.</returns>
-    /// <exception cref="OperationCanceledException">A cancellation token in the call tree was triggered.</exception>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public Task WriteElementAsync(
-        string name,
-        Action<AttributeWriter>? attributes = null,
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        [DisallowNull] Func<HtmlWriterAsync, CancellationToken, Task>? children = null,
-#pragma warning restore
-        CancellationToken cancellationToken = default)
-        => WriteElementAsync(name.AsSpan(), attributes, children, cancellationToken);
-
-    /// <summary>
-    /// Writes an element with optional attributes and child content.
     /// If there are no children (for example, <paramref name="children"/> is null or writes nothing), use <see cref="HtmlWriter.WriteElement(ReadOnlySpan{char}, Action{AttributeWriter}?, Action{HtmlWriter}?)"/> instead.
     /// </summary>
     /// <param name="name">The HTML element name.</param>
