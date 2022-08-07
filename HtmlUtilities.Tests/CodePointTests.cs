@@ -66,6 +66,13 @@ public static class CodePointTests
         new object[] { "𤭢", new CodePoint[] { 0x24B62 } },
     };
 
+    public static readonly object?[][] Utf16TestCasesWithInvalidCodePoints = new object?[][] {
+        new object[] { "", new CodePoint[] { 0x110000 } },
+        new object[] { "$", new CodePoint[] { 0x0024, 0x110000 } },
+        new object[] { "$$", new CodePoint[] { 0x0024, 0x110000, 0x0024 } },
+        new object[] { "$", new CodePoint[] { 0x110000, 0x0024 } },
+    };
+
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
     public static void DecodeUtf16FromString(string? value, CodePoint[] expected)
@@ -82,6 +89,7 @@ public static class CodePointTests
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
+    [MemberData(nameof(Utf16TestCasesWithInvalidCodePoints))]
     public static void EncodeUtf16FromEnumerableCodePoints(string? expected, CodePoint[] value)
     {
         Assert.Equal(expected is null ? "" : expected, CodePoint.EncodeUtf16(value).ToArray());
@@ -168,6 +176,7 @@ public static class CodePointTests
     [InlineData("€", 0x20AC)]
     [InlineData("𐐷", 0x10437)]
     [InlineData("𤭢", 0x24B62)]
+    [InlineData("", 0x110000)]
     public static void ConvertToString(string expected, int codePoint)
     {
         Assert.Equal(expected, ((CodePoint)codePoint).ToString());
@@ -222,6 +231,7 @@ public static class CodePointTests
     [InlineData("€", 0x20AC)]
     [InlineData("𐐷", 0x10437)]
     [InlineData("𤭢", 0x24B62)]
+    [InlineData("", 0x110000)]
     public static void TrySpanFormattable(string expected, int codePoint)
     {
         Span<char> destination = stackalloc char[2];

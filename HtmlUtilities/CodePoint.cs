@@ -307,9 +307,10 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
         var value = this.Value;
 
         if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
-        {
             return ((char)value).ToString();
-        }
+
+        if (value > 0x10FFFF)
+            return string.Empty;
 
         Span<char> chars = stackalloc char[2];
 
@@ -343,6 +344,12 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
             destination[0] = (char)value;
 
             charsWritten = 1;
+            return true;
+        }
+
+        if (value > 0x10FFFF)
+        {
+            charsWritten = 0;
             return true;
         }
 
@@ -607,6 +614,9 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
                 yield return (char)value;
                 continue;
             }
+
+            if (value > 0x10FFFF)
+                continue;
 
             value -= 0x10000;
             yield return (char)(value / 0x400 + 0xD800);
