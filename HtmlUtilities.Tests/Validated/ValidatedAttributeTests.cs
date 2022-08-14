@@ -1,4 +1,4 @@
-﻿namespace HtmlUtilities;
+﻿namespace HtmlUtilities.Validated;
 
 public static class ValidatedAttributeTests
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HtmlUtilities;
+namespace HtmlUtilities.Validated;
 
 /// <summary>
 /// Enables pre-validation of HTML element names by storing only valid names.

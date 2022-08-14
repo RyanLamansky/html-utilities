@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HtmlUtilities;
+namespace HtmlUtilities.Validated;
 
 /// <summary>
 /// Enables pre-validation of script elements.
@@ -61,12 +61,12 @@ public readonly struct ValidatedScript
             writer.Release();
         }
     }
-    
+
     internal static void Validate(ref ArrayBuilder<byte> writer, ReadOnlySpan<char> script)
     {
         // See https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements for the official rules.
         // It's technically possible for all risky scenarios to be corrected automatically, but that would require a fully-featured JavaScript parser.
-        
+
         var temp = new string(script); // Optimal validation would operate in a single pass without a temporary string.
         if (temp.Contains("<!--") || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));

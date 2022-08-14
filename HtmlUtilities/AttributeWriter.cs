@@ -2,6 +2,8 @@
 
 namespace HtmlUtilities;
 
+using Validated;
+
 /// <summary>
 /// Writes attributes for an HTML element.
 /// </summary>

@@ -2,6 +2,8 @@
 
 namespace HtmlUtilities;
 
+using Validated;
+
 /// <summary>
 /// Ensures a consistent degree of efficiency for the <see cref="HtmlWriter"/> over time.
 /// </summary>

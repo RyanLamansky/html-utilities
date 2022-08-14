@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HtmlUtilities;
+namespace HtmlUtilities.Validated;
 
 /// <summary>
 /// A pre-validated and formatted block of text ready to be written.

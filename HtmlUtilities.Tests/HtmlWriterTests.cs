@@ -3,6 +3,8 @@ using System.Text;
 
 namespace HtmlUtilities;
 
+using Validated;
+
 public static class HtmlWriterTests
 {
     [Fact]

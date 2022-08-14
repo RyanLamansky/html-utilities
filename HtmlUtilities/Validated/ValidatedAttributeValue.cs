@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HtmlUtilities;
+namespace HtmlUtilities.Validated;
 
 /// <summary>
 /// A pre-validated and formatted attribute value ready to be written.
@@ -9,7 +9,7 @@ public readonly struct ValidatedAttributeValue
 {
     private static readonly byte[] Empty = new[] { (byte)'=', (byte)'"', (byte)'"' };
 
-internal readonly byte[]? value;
+    internal readonly byte[]? value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.

@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HtmlUtilities;
 
+using Validated;
+
 /// <summary>
 /// A high-performance writer for HTML content.
 /// </summary>
@@ -22,7 +24,7 @@ public readonly struct HtmlWriter
 
     private readonly IBufferWriter<byte> writer;
 
-    internal HtmlWriter(IBufferWriter<byte> writer)
+    private HtmlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
     }

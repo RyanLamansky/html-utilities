@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HtmlUtilities;
+namespace HtmlUtilities.Validated;
 
 /// <summary>
 /// A combination of <see cref="ValidatedAttributeName"/> and <see cref="ValidatedAttributeValue"/>.
