@@ -225,6 +225,45 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteUtf8To(Span<byte> destination, ref int location)
+    {
+        if (Value <= 0x7F)
+        {
+            destination[location++] = (byte)Value;
+            return;
+        }
+
+        static void WriteUtf8ToNonAscii(uint value, Span<byte> destination, ref int location)
+        {
+            if (value <= 0x7FF)
+            {
+                destination[location++] = (byte)(0b11000000 | (value >> 6));
+                destination[location++] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+
+            if (value <= 0xFFFF)
+            {
+                destination[location++] = (byte)(0b11100000 | (value >> 12));
+                destination[location++] = (byte)(0b10000000 | (value >> 6) & 0b00111111);
+                destination[location++] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+
+            if (value <= 0x10FFFF)
+            {
+                destination[location++] = (byte)(0b11110000 | (value >> 18));
+                destination[location++] = (byte)(0b10000000 | (value >> 12) & 0b00111111);
+                destination[location++] = (byte)(0b10000000 | (value >> 6) & 0b00111111);
+                destination[location++] = (byte)(0b10000000 | value & 0b00111111);
+                return;
+            }
+        }
+
+        WriteUtf8ToNonAscii(Value, destination, ref location);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void WriteUtf8To(ref ArrayBuilder<byte> writer)
     {
         var value = this.Value;
@@ -733,4 +772,47 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
     /// </summary>
     public static Utf16DecoderEnumerable GetEnumerable(ReadOnlySpan<char> source) => new(source);
+
+    /// <summary>
+    /// Determines the amount of UTF-8 bytes needed for a UTF-16 source without allocating heap memory.
+    /// </summary>
+    /// <param name="source">A sequence of UTF-16 characters.</param>
+    /// <returns>The number of bytes required.</returns>
+    /// <exception cref="OverflowException">More than <see cref="int.MaxValue"/> bytes are required.</exception>
+    public static int Utf8BytesNeeded(ReadOnlySpan<char> source)
+    {
+        var enumerable = new Utf16DecoderEnumerable(source);
+        var bytesNeeded = 0;
+        foreach (var codePoint in enumerable)
+            checked { bytesNeeded += codePoint.Utf8ByteCount; }
+
+        return bytesNeeded;
+    }
+
+    /// <summary>
+    /// Converts UTF-16 to UTF-8 without allocating heap memory.
+    /// </summary>
+    /// <param name="source">A sequence of UTF-16 characters.</param>
+    /// <param name="destination">The destination for UTF-8 bytes.</param>
+    /// <returns>The number of bytes required.</returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="destination"/> is not large enough to contain the converted input.</exception>
+    public static int SwitchUtf(ReadOnlySpan<char> source, Span<byte> destination)
+    {
+        var enumerable = new Utf16DecoderEnumerable(source);
+        var bytesWritten = 0;
+
+        foreach (var codePoint in enumerable)
+        {
+            try
+            {
+                codePoint.WriteUtf8To(destination, ref bytesWritten);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new ArgumentOutOfRangeException(nameof(destination), "destination is not large enough to contain the converted input.");
+            }
+        }
+
+        return bytesWritten;
+    }
 }

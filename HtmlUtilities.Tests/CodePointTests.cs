@@ -245,7 +245,7 @@ public static class CodePointTests
     {
         Assert.False(new CodePoint('T').TryFormat(Span<char>.Empty, out var charsWritten));
         Assert.False(new CodePoint(0x24B62).TryFormat(Span<char>.Empty, out charsWritten));
-        
+
         Span<char> destination = stackalloc char[1];
         Assert.False(new CodePoint(0x24B62).TryFormat(destination, out charsWritten));
     }
@@ -261,7 +261,7 @@ public static class CodePointTests
 
         Assert.True(codePoint.TryFormat(destination, out var charsWritten, "X2"));
         var expected = new string(destination[..charsWritten]);
-        
+
         var cp = new CodePoint(codePoint);
         Assert.True(cp.TryFormat(destination, out charsWritten, "X2", null));
         var actual = new string(destination[..charsWritten]);
@@ -367,5 +367,25 @@ public static class CodePointTests
             results.Add(codePoint);
 
         Assert.Equal(expected, results);
+    }
+
+    [Theory]
+    [InlineData("Test", 4)]
+    [InlineData("日本語", 9)]
+    public static void Utf8BytesNeeded(string value, int utf8ByteLength)
+    {
+        Assert.Equal(utf8ByteLength, CodePoint.Utf8BytesNeeded(value));
+    }
+
+    [Theory]
+    [InlineData("Test", new byte[] { 84, 101, 115, 116 })]
+    [InlineData("日本語", new byte[] { 230, 151, 165, 230, 156, 172, 232, 170, 158 })]
+    public static void SwitchUtf16To8(string value, byte[] expected)
+    {
+        var destination = new byte[CodePoint.Utf8BytesNeeded(value)];
+
+        CodePoint.SwitchUtf(value, destination);
+
+        Assert.Equal(expected, destination);
     }
 }
