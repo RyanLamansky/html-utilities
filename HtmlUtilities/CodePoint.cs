@@ -33,10 +33,10 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
         this.Value = value;
     }
 
-    // This pre-caculated lookup table provides O(1) lookup time for ASCII characters.
+    // This pre-calculated lookup table provides O(1) lookup time for ASCII characters.
     // https://github.com/dotnet/runtime/issues/60948 (via https://github.com/dotnet/roslyn/pull/61414) can potentially make this faster.
     // It would also save 512 bytes + overhead of this statically allocated array.
-    // The current approach seems to be the fastest option on .NET 6.
+    // The current approach was the fastest known option at the time it was written.
     private static readonly CodePointInfraCategory[] AsciiInfraCategories = new[]
     {
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
@@ -325,7 +325,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     public override bool Equals([NotNullWhen(true)] object? obj) => obj is CodePoint cp && Equals(cp);
 
     /// <summary>
-    /// Returns true of the current <see cref="Value"/> matches the one provided.
+    /// Returns true if the current <see cref="Value"/> matches the one provided.
     /// </summary>
     /// <param name="other">Another value.</param>
     /// <returns>True if they match, otherwise false.</returns>
@@ -633,7 +633,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     }
 
     /// <summary>
-    /// Encodes a sequence of code points into a UTF-16 sequece.
+    /// Encodes a sequence of code points into a UTF-16 sequence.
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
     /// <returns>The UTF-16 sequence.</returns>
