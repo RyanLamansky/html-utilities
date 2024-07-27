@@ -236,7 +236,9 @@ public static class CodePointTests
     {
         Span<char> destination = stackalloc char[2];
         Assert.True(new CodePoint(codePoint).TryFormat(destination, out var charsWritten));
+#pragma warning disable CA1062 // expected will never be null
         Assert.Equal(expected.Length, charsWritten);
+#pragma warning restore
         Assert.Equal(expected, new string(destination[..charsWritten]));
     }
 

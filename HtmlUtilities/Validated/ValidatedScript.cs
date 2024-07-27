@@ -43,12 +43,12 @@ public readonly struct ValidatedScript
     /// </summary>
     /// <returns>The validated script.</returns>
     /// <exception cref="ArgumentException"><paramref name="script"/>  contains a potentially invalid character sequence.</exception>
-    public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ValidatedAttribute[] attributes)
+    public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ValidatedAttribute[]? attributes)
     {
         var writer = new ArrayBuilder<byte>(script.Length);
         try
         {
-            foreach (var attribute in attributes)
+            foreach (var attribute in attributes ?? [])
                 writer.Write(attribute.value);
 
             writer.Write('>');

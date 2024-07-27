@@ -19,6 +19,7 @@ public static class HtmlDocumentExtensions
         IBufferWriter<byte> writer,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(document, nameof(document));
         cancellationToken.ThrowIfCancellationRequested();
 
         writer.Write("<!DOCTYPE html><html"u8);
@@ -32,7 +33,6 @@ public static class HtmlDocumentExtensions
         }
 
         writer.Write("><head><meta charset=utf-8><meta name=viewport content=\"width=device-width, initial-scale=1\">"u8);
-
 
         if ((validated = document.Title.value) is not null)
         {

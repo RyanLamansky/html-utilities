@@ -6,5 +6,6 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <DebugType>embedded</DebugType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AnalysisMode>Recommended</AnalysisMode>
   </PropertyGroup>
 </Project>

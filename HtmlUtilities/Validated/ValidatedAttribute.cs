@@ -5,7 +5,9 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// A combination of <see cref="ValidatedAttributeName"/> and <see cref="ValidatedAttributeValue"/>.
 /// </summary>
+#pragma warning disable CA1711 // "Attribute" has a well known meaning in the context of HTML.
 public readonly struct ValidatedAttribute
+#pragma warning restore
 {
     internal readonly byte[]? value;
 
