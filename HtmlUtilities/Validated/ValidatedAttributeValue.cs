@@ -7,7 +7,7 @@ namespace HtmlUtilities.Validated;
 /// </summary>
 public readonly struct ValidatedAttributeValue
 {
-    private static readonly byte[] Empty = new[] { (byte)'=', (byte)'"', (byte)'"' };
+    private static readonly byte[] Empty = "=\"\""u8.ToArray();
 
     internal readonly byte[]? value;
 
@@ -260,14 +260,14 @@ public readonly struct ValidatedAttributeValue
 
     private static void EmitUnquoted(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
-        writer.Write((byte)'=');
+        writer.Write('=');
 
         foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(NamedCharacterReferences.Ampersand);
+                    writer.Write("&amp;"u8);
                     continue;
             }
 
@@ -277,25 +277,25 @@ public readonly struct ValidatedAttributeValue
 
     private static void EmitQuoted(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
-        writer.Write((byte)'=');
-        writer.Write((byte)'"');
+        writer.Write('=');
+        writer.Write('"');
 
         foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(NamedCharacterReferences.Ampersand);
+                    writer.Write("&amp;"u8);
                     continue;
                 case '"':
-                    writer.Write(NamedCharacterReferences.Quote);
+                    writer.Write("&quot;"u8);
                     continue;
             }
 
             codePoint.WriteUtf8To(ref writer);
         }
 
-        writer.Write((byte)'"');
+        writer.Write('"');
     }
 
     /// <summary>

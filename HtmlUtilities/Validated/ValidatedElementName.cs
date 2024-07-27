@@ -33,7 +33,7 @@ public readonly struct ValidatedElementName
     {
         // https://html.spec.whatwg.org/#syntax-tag-name
         // Summary of above:
-        // - Must be at least one charcter
+        // - Must be at least one character
         // - First character must be ASCII alpha
         // - Rest must be ASCII alpha or ASCII digit
 

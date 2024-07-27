@@ -34,15 +34,15 @@ public static class CodePointTests
         Assert.Equal(categories, new CodePoint(codePoint).InfraCategories);
     }
 
-    public static readonly object?[][] Utf8ValidTestCases = new object?[][] {
-        new object?[] { null, Array.Empty<CodePoint>() },
-        new object[] { "$", new CodePoint[] { 0x0024 } },
-        new object[] { "£", new CodePoint[] { 0x00A3 } },
-        new object[] { "ह", new CodePoint[] { 0x0939 } },
-        new object[] { "€", new CodePoint[] { 0x20AC } },
-        new object[] { "한", new CodePoint[] { 0xd55c } },
-        new object[] { "𐍈", new CodePoint[] { 0x10348 } },
-    };
+    public static readonly object?[][] Utf8ValidTestCases = [
+        [null, Array.Empty<CodePoint>()],
+        ["$", new CodePoint[] { 0x0024 }],
+        ["£", new CodePoint[] { 0x00A3 }],
+        ["ह", new CodePoint[] { 0x0939 }],
+        ["€", new CodePoint[] { 0x20AC }],
+        ["한", new CodePoint[] { 0xd55c }],
+        ["𐍈", new CodePoint[] { 0x10348 }],
+    ];
 
     [Theory]
     [MemberData(nameof(Utf8ValidTestCases))]
@@ -58,20 +58,20 @@ public static class CodePointTests
         Assert.Equal(expected is null ? "" : expected, UTF8.GetString(CodePoint.EncodeUtf8(value).ToArray()));
     }
 
-    public static readonly object?[][] Utf16TestCases = new object?[][] {
-        new object?[] { null, Array.Empty<CodePoint>() },
-        new object[] { "$", new CodePoint[] { 0x0024 } },
-        new object[] { "€", new CodePoint[] { 0x20AC } },
-        new object[] { "𐐷", new CodePoint[] { 0x10437 } },
-        new object[] { "𤭢", new CodePoint[] { 0x24B62 } },
-    };
+    public static readonly object?[][] Utf16TestCases = [
+        [null, Array.Empty<CodePoint>()],
+        ["$", new CodePoint[] { 0x0024 }],
+        ["€", new CodePoint[] { 0x20AC }],
+        ["𐐷", new CodePoint[] { 0x10437 }],
+        ["𤭢", new CodePoint[] { 0x24B62 }],
+    ];
 
-    public static readonly object?[][] Utf16TestCasesWithInvalidCodePoints = new object?[][] {
-        new object[] { "", new CodePoint[] { 0x110000 } },
-        new object[] { "$", new CodePoint[] { 0x0024, 0x110000 } },
-        new object[] { "$$", new CodePoint[] { 0x0024, 0x110000, 0x0024 } },
-        new object[] { "$", new CodePoint[] { 0x110000, 0x0024 } },
-    };
+    public static readonly object?[][] Utf16TestCasesWithInvalidCodePoints = [
+        ["", new CodePoint[] { 0x110000 }],
+        ["$", new CodePoint[] { 0x0024, 0x110000 }],
+        ["$$", new CodePoint[] { 0x0024, 0x110000, 0x0024 }],
+        ["$", new CodePoint[] { 0x110000, 0x0024 }],
+    ];
 
     [Theory]
     [MemberData(nameof(Utf16TestCases))]
@@ -243,8 +243,8 @@ public static class CodePointTests
     [Fact]
     public static void TrySpanFormattableTooShortIsFalse()
     {
-        Assert.False(new CodePoint('T').TryFormat(Span<char>.Empty, out var charsWritten));
-        Assert.False(new CodePoint(0x24B62).TryFormat(Span<char>.Empty, out charsWritten));
+        Assert.False(new CodePoint('T').TryFormat([], out var charsWritten));
+        Assert.False(new CodePoint(0x24B62).TryFormat([], out charsWritten));
 
         Span<char> destination = stackalloc char[1];
         Assert.False(new CodePoint(0x24B62).TryFormat(destination, out charsWritten));

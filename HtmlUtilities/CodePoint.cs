@@ -8,13 +8,14 @@ namespace HtmlUtilities;
 /// Represents a single Unicode code point as described by https://infra.spec.whatwg.org/#code-points.
 /// Also provided are several mechanisms to convert to and from <see cref="CodePoint"/> values.
 /// </summary>
-public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparable<CodePoint>, ISpanFormattable, IFormattable
+/// <param name="value">The raw Unicode code point value.</param>
+public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparable, IComparable<CodePoint>, ISpanFormattable, IFormattable
 {
     /// <summary>
     /// Gets the raw Unicode code point value.
     /// Valid code points are in the range of 0 through 0x10FFFF (1114111 in decimal), but <see cref="CodePoint"/> accepts the full range of <see cref="uint"/>.
     /// </summary>
-    public uint Value { get; }
+    public uint Value { get; } = value;
 
     /// <summary>
     /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
@@ -24,21 +25,11 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     {
     }
 
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public CodePoint(uint value)
-    {
-        this.Value = value;
-    }
-
     // This pre-calculated lookup table provides O(1) lookup time for ASCII characters.
-    // https://github.com/dotnet/runtime/issues/60948 (via https://github.com/dotnet/roslyn/pull/61414) can potentially make this faster.
-    // It would also save 512 bytes + overhead of this statically allocated array.
-    // The current approach was the fastest known option at the time it was written.
-    private static readonly CodePointInfraCategory[] AsciiInfraCategories = new[]
-    {
+    // https://github.com/dotnet/runtime/issues/60948 (via https://github.com/dotnet/roslyn/pull/61414) accelerates it.
+    // It works by creating a ReadOnlySpan into a compile-time generated constant.
+    private static ReadOnlySpan<CodePointInfraCategory> AsciiInfraCategories =>
+    [
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
         ScalarValue | Ascii | C0Control | C0ControlOrSpace | Control,
@@ -167,7 +158,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
         ScalarValue | Ascii,
         ScalarValue | Ascii,
         ScalarValue | Ascii | Control,
-    };
+    ];
 
     /// <summary>
     /// Gets the categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
@@ -180,7 +171,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
         {
             // Considering that this is an HTML-oriented project, ASCII will be very common so we have a fast path for that.
             if (Value < AsciiInfraCategories.Length)
-                return AsciiInfraCategories[Value];
+                return AsciiInfraCategories[(int)Value];
 
             return NonAsciiInfraCategory(Value);
         }
@@ -479,13 +470,13 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     public static implicit operator CodePoint(char value) => new(value);
 
     /// <summary>
-    /// Losslessly converts the <see cref="CodePoint"/> value into an <see cref="int"/>.
+    /// Converts the <see cref="CodePoint"/> value into an <see cref="int"/>.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     public static implicit operator int(CodePoint value) => (int)value.Value;
 
     /// <summary>
-    /// Losslessly converts the <see cref="CodePoint"/> value into an <see cref="uint"/>.
+    /// Converts the <see cref="CodePoint"/> value into an <see cref="uint"/>.
     /// </summary>
     /// <param name="value">The value to convert.</param>
     public static implicit operator uint(CodePoint value) => value.Value;
@@ -494,7 +485,7 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     /// Converts the <see cref="CodePoint"/> value into an <see cref="char"/>.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    /// <exception cref="OverflowException">The <see cref="Value"/> of the provided <see cref="CodePoint"/> can't be losslessly converted to <see cref="char"/>.</exception>
+    /// <exception cref="OverflowException">The <see cref="Value"/> of the provided <see cref="CodePoint"/> can't be converted to <see cref="char"/>.</exception>
     public static explicit operator char(CodePoint value) => checked((char)value.Value);
 
     /// <summary>

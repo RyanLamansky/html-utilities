@@ -17,10 +17,7 @@ public readonly struct ValidatedAttribute
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public ValidatedAttribute(ValidatedAttributeName name, ValidatedAttributeValue value)
     {
-        var nv = name.value;
-        if (nv is null)
-            throw new ArgumentException("name was never initialized.", nameof(name));
-
+        var nv = name.value ?? throw new ArgumentException("name was never initialized.", nameof(name));
         var vv = value.value;
         if (vv is null)
         {

@@ -54,12 +54,9 @@ public readonly struct ValidatedElement
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public ValidatedElement(ValidatedElementName name, IEnumerable<ValidatedAttribute>? attributes)
     {
-        attributes ??= Enumerable.Empty<ValidatedAttribute>();
+        attributes ??= [];
 
-        var elementNameValue = name.value;
-        if (elementNameValue is null)
-            throw new ArgumentException("name was never initialized.", nameof(name));
-
+        var elementNameValue = name.value ?? throw new ArgumentException("name was never initialized.", nameof(name));
         var attributeValueLengthSum = 0;
         foreach (var attribute in attributes)
         {

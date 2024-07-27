@@ -28,7 +28,7 @@ public readonly struct ValidatedScript
             foreach (var attribute in (attributes ?? Enumerable.Empty<ValidatedAttribute>()).Prepend(new ValidatedAttribute("src", source)))
                 writer.Write(attribute.value);
 
-            writer.Write((byte)'>');
+            writer.Write('>');
 
             return new ValidatedScript(writer.ToArray());
         }
@@ -51,7 +51,7 @@ public readonly struct ValidatedScript
             foreach (var attribute in attributes)
                 writer.Write(attribute.value);
 
-            writer.Write((byte)'>');
+            writer.Write('>');
 
             Validate(ref writer, script);
             return new ValidatedScript(writer.ToArray());

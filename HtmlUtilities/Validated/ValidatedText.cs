@@ -43,10 +43,10 @@ public readonly struct ValidatedText
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(NamedCharacterReferences.Ampersand);
+                    writer.Write("&amp;"u8);
                     continue;
                 case '<':
-                    writer.Write(NamedCharacterReferences.LessThan);
+                    writer.Write("&lt;"u8);
                     continue;
             }
 

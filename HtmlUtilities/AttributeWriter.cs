@@ -222,7 +222,7 @@ public readonly struct AttributeWriter
     public void Write(ValidatedAttributeName name, ulong? value)
     {
         if (value is null)
-            Write(name, ReadOnlySpan<char>.Empty);
+            Write(name, []);
         else
             Write(name, value.GetValueOrDefault());
     }
@@ -236,7 +236,7 @@ public readonly struct AttributeWriter
     public void Write(ReadOnlySpan<char> name, ulong? value)
     {
         if (value is null)
-            Write(name, ReadOnlySpan<char>.Empty);
+            Write(name, []);
         else
             Write(name, value.GetValueOrDefault());
     }

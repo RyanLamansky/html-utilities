@@ -34,6 +34,6 @@ public static class ValidatedElementTests
     [Fact]
     public static void ValidatedElementWithAttributesIsCorrect()
     {
-        Assert.Equal("<html lang=en-us>", new ValidatedElement("html", new ValidatedAttribute[] { ("lang", "en-us") }).ToString());
+        Assert.Equal("<html lang=en-us>", new ValidatedElement("html", [("lang", "en-us")]).ToString());
     }
 }

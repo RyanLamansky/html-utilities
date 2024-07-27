@@ -12,15 +12,8 @@ using Validated;
 public readonly struct HtmlWriter
 {
     private static readonly ValidatedElement html = new(
-        new byte[]
-        {
-            (byte)'<', (byte)'!', (byte)'D', (byte)'O', (byte)'C', (byte)'T', (byte)'Y', (byte)'P', (byte)'E', (byte)' ', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
-            (byte)'<', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
-        },
-        new byte[]
-        {
-            (byte)'<', (byte)'/', (byte)'h', (byte)'t', (byte)'m', (byte)'l', (byte)'>',
-        });
+        "<!DOCTYPE html><html>"u8.ToArray(),
+        "</html>"u8.ToArray());
 
     private readonly IBufferWriter<byte> writer;
 
@@ -92,11 +85,11 @@ public readonly struct HtmlWriter
             ValidatedElementName.Validate(element, ref elementNameWriter);
             var validatedElement = elementNameWriter.WrittenSpan;
 
-            w.Write((byte)'<');
+            w.Write('<');
             w.Write(validatedElement);
-            w.Write(new [] { (byte)'>', (byte)'<', (byte)'/', });
+            w.Write("></"u8);
             w.Write(validatedElement);
-            w.Write((byte)'>');
+            w.Write('>');
 
             this.writer.Write(w.WrittenSpan);
         }
@@ -182,7 +175,7 @@ public readonly struct HtmlWriter
             if (children is not null)
                 children(this);
 
-            writer.Write(new[] { (byte)'<', (byte)'/' });
+            writer.Write("</"u8);
             writer.Write(validatedElement);
         }
         finally
@@ -200,11 +193,7 @@ public readonly struct HtmlWriter
     /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void WriteElementSelfClosing(ValidatedElement element)
     {
-        var start = element.start;
-
-        if (start is null)
-            throw new ArgumentException("element was never initialized.", nameof(element));
-
+        var start = element.start ?? throw new ArgumentException("element was never initialized.", nameof(element));
         this.writer.Write(start);
     }
 
@@ -219,9 +208,9 @@ public readonly struct HtmlWriter
 
         try
         {
-            w.Write((byte)'<');
+            w.Write('<');
             ValidatedElementName.Validate(name, ref w);
-            w.Write((byte)'>');
+            w.Write('>');
 
             this.writer.Write(w.WrittenSpan);
         }
@@ -240,11 +229,7 @@ public readonly struct HtmlWriter
     public void WriteElementSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
     {
         var writer = this.writer;
-        var start = element.start;
-
-        if (start is null)
-            throw new ArgumentException("element was never initialized.", nameof(element));
-
+        var start = element.start ?? throw new ArgumentException("element was never initialized.", nameof(element));
         if (attributes is null)
             writer.Write(start);
         else
@@ -271,7 +256,7 @@ public readonly struct HtmlWriter
 
         try
         {
-            w.Write((byte)'<');
+            w.Write('<');
             ValidatedElementName.Validate(name, ref w);
 
             writer.Write(w.WrittenSpan);
@@ -331,9 +316,9 @@ public readonly struct HtmlWriter
         if (script.value is null)
             throw new ArgumentException("script was never initialized.", nameof(script));
 
-        writer.Write(new[] { (byte)'<', (byte)'s', (byte)'c', (byte)'r', (byte)'i', (byte)'p', (byte)'t' });
+        writer.Write("<script"u8);
         writer.Write(script.value);
-        writer.Write(new[] { (byte)'<', (byte)'/', (byte)'s', (byte)'c', (byte)'r', (byte)'i', (byte)'p', (byte)'t', (byte)'>' });
+        writer.Write("</script>"u8);
     }
 
     /// <summary>
@@ -443,7 +428,7 @@ public readonly struct HtmlWriter
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var writer = htmlWriterAsync.writer;
-                writer.Write(new[] { (byte)'<', (byte)'/' });
+                writer.Write("</"u8);
                 writer.Write(validatedName.Span);
                 WriteGreaterThan(writer);
             }

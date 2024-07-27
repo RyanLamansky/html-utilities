@@ -33,7 +33,7 @@ public readonly struct ValidatedAttributeName
         if (name.Length == 0)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
-        writer.Write((byte)' ');
+        writer.Write(' ');
         foreach (var codePoint in CodePoint.GetEnumerable(name))
         {
             var categories = codePoint.InfraCategories;
@@ -43,7 +43,7 @@ public readonly struct ValidatedAttributeName
             switch (codePoint.Value)
             {
                 case '&':
-                    writer.Write(NamedCharacterReferences.Ampersand);
+                    writer.Write("&amp;"u8);
                     continue;
 
                 // Specific characters
