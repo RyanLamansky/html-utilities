@@ -303,4 +303,16 @@ public readonly struct ValidatedAttributeValue
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => value is null ? "" : Encoding.UTF8.GetString(value);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
+    /// </summary>
+    /// <param name="value">The value to prepare as an attribute.</param>
+    public static implicit operator ValidatedAttributeValue(ReadOnlySpan<char> value) => new(value);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
+    /// </summary>
+    /// <param name="value">The value to prepare as an attribute.</param>
+    public static implicit operator ValidatedAttributeValue(string value) => new(value);
 }

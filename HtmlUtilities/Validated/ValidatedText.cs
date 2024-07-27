@@ -59,4 +59,18 @@ public readonly struct ValidatedText
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => value is null ? "" : Encoding.UTF8.GetString(value);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedText"/> with the provided content.
+    /// </summary>
+    /// <param name="text">The text to use.</param>
+    /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
+    public static implicit operator ValidatedText(ReadOnlySpan<char> text) => new(text);
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedText"/> with the provided content.
+    /// </summary>
+    /// <param name="text">The text to use.</param>
+    /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
+    public static implicit operator ValidatedText(string text) => new(text);
 }

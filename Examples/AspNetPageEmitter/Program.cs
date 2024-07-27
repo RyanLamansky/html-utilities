@@ -1,31 +1,40 @@
 using HtmlUtilities;
+using HtmlUtilities.Validated;
 
-var app = WebApplication.CreateBuilder(args).Build();
+var builder = WebApplication.CreateBuilder(args);
 
-app.MapFallback(async (HttpResponse response, CancellationToken cancellationToken) =>
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
+var app = builder.Build();
+
+app.MapFallback((HttpContext context) =>
+    context.WriteDocumentAsync(new TestDocument()));
+
+await app.RunAsync().ConfigureAwait(false);
+
+class TestDocument : IHtmlDocument
 {
-    response.ContentType = "text/html; charset=utf-8";
+    ValidatedAttributeValue IHtmlDocument.Language => "en-us";
+    ValidatedText IHtmlDocument.Title => "Hello World!";
+    ValidatedAttributeValue IHtmlDocument.Description => "Test page for HTML Utilities";
 
-    await HtmlWriter.WriteDocumentAsync(response.BodyWriter, attributes => attributes.Write("lang", "en-us"), async (children, cancellationToken) =>
+    Task IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
     {
-        children.WriteElement("head", null, children =>
-        {
-            children.WriteElementSelfClosing("meta", attributes => attributes.Write("charset", "utf-8"));
-            children.WriteElement("title", null, children => children.WriteText("Hello World!"));
-        }); //head
+        writer.WriteElement("p", null, children => children.WriteText("Test bytes."));
+        return Task.CompletedTask;
+    }
+}
 
-        await children.WriteElementAsync("body", null, async (children, cancellationToken) =>
-        {
-            children.WriteElement("p", null, children => children.WriteText("First bytes."));
+static class Extensions
+{
+    public static Task WriteDocumentAsync(this HttpContext context, IHtmlDocument document)
+    {
+        var request = context.Request;
+        var response = context.Response;
+        response.ContentType = "text/html; charset=utf-8";
+        var baseUri = $"{request.Scheme}://{request.Host}/";
+        response.Headers.ContentSecurityPolicy = $"default-src {baseUri}; base-uri {baseUri}";
 
-            await response.BodyWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-
-            children.WriteElement("p", null, children => children.WriteText("Second bytes after a delay."));
-        }, cancellationToken).ConfigureAwait(false); // body
-    }, cancellationToken).ConfigureAwait(false);
-
-    await response.BodyWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
-});
-
-app.Run();
+        return document.WriteAsync(response.BodyWriter, context.RequestAborted);
+    }
+}

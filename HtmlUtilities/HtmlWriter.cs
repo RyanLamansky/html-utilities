@@ -17,7 +17,7 @@ public readonly struct HtmlWriter
 
     private readonly IBufferWriter<byte> writer;
 
-    private HtmlWriter(IBufferWriter<byte> writer)
+    internal HtmlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
     }
