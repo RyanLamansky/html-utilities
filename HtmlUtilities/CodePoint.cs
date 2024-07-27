@@ -703,70 +703,9 @@ public readonly struct CodePoint : IEquatable<CodePoint>, IComparable, IComparab
     }
 
     /// <summary>
-    /// Enumerates <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
+    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/> without allocating heap memory.
     /// </summary>
-    public ref struct Utf16DecoderEnumerator
-    {
-        private ReadOnlySpan<char>.Enumerator enumerator;
-
-        /// <summary>
-        /// The current <see cref="CodePoint"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
-        /// </summary>
-        public CodePoint Current { readonly get; private set; }
-
-        internal Utf16DecoderEnumerator(ReadOnlySpan<char> source)
-        {
-            this.enumerator = source.GetEnumerator();
-            this.Current = default;
-        }
-
-        /// <summary>
-        /// Reads the next <see cref="CodePoint"/> from the source.
-        /// </summary>
-        /// <returns>True if a value was found, false if the end of the source has been reached.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool MoveNext()
-        {
-            if (!enumerator.MoveNext())
-                return false;
-
-            var high = (int)enumerator.Current;
-
-            if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
-            {
-                Current = high;
-                return true;
-            }
-            else if (!enumerator.MoveNext())
-            {
-                return false;
-            }
-
-            var low = (int)enumerator.Current;
-            Current = (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
-
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Wraps a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> for on-demand enumeration into <see cref="CodePoint"/>s.
-    /// </summary>
-    public readonly ref struct Utf16DecoderEnumerable
-    {
-        private readonly ReadOnlySpan<char> source;
-
-        internal Utf16DecoderEnumerable(ReadOnlySpan<char> source)
-        {
-            this.source = source;
-        }
-
-        /// <summary>
-        /// Gets an enumerator to produce <see cref="CodePoint"/> from the source.
-        /// </summary>
-        /// <returns>The enumerator.</returns>
-        public Utf16DecoderEnumerator GetEnumerator() => new(source);
-    }
+    public static Utf8DecoderEnumerable GetEnumerable(ReadOnlySpan<byte> source) => new(source);
 
     /// <summary>
     /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
