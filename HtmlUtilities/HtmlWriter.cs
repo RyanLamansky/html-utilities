@@ -9,17 +9,24 @@ using Validated;
 /// A high-performance writer for HTML content.
 /// </summary>
 /// <remarks>UTF-8 is always used.</remarks>
-public readonly struct HtmlWriter
+public sealed class HtmlWriter
 {
     private static readonly ValidatedElement html = new(
         "<!DOCTYPE html><html>"u8.ToArray(),
         "</html>"u8.ToArray());
 
     private readonly IBufferWriter<byte> writer;
+    private readonly ValidatedAttribute cspNonce;
 
     internal HtmlWriter(IBufferWriter<byte> writer)
+        : this(writer, new ValidatedAttribute())
+    {
+    }
+
+    internal HtmlWriter(IBufferWriter<byte> writer, ValidatedAttribute cspNonce)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
+        ArgumentNullException.ThrowIfNull(this.cspNonce = cspNonce, nameof(cspNonce));
     }
 
     /// <summary>
@@ -317,6 +324,7 @@ public readonly struct HtmlWriter
             throw new ArgumentException("script was never initialized.", nameof(script));
 
         writer.Write("<script"u8);
+        writer.Write(this.cspNonce.value);
         writer.Write(script.value);
         writer.Write("</script>"u8);
     }

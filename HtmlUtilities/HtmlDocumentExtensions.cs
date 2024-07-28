@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using Microsoft.AspNetCore.Http;
+using System.Buffers;
 
 namespace HtmlUtilities;
 
@@ -8,19 +9,25 @@ namespace HtmlUtilities;
 public static class HtmlDocumentExtensions
 {
     /// <summary>
-    /// Writes the document to <paramref name="writer"/>.
+    /// Writes the document to <paramref name="context"/>.
     /// </summary>
     /// <param name="document">The document to write.</param>
-    /// <param name="writer">Receives the written document.</param>
-    /// <param name="cancellationToken">Cancels emission of document data.</param>
-    /// <returns></returns>
-    public static async Task WriteAsync(
-        this IHtmlDocument document,
-        IBufferWriter<byte> writer,
-        CancellationToken cancellationToken = default)
+    /// <param name="context">Receives the written document.</param>
+    /// <returns>A task that shows completion when the document is written.</returns>
+    public static Task WriteToAsync(this IHtmlDocument document, HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(document, nameof(document));
-        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
+
+        var request = context.Request;
+        var response = context.Response;
+        response.ContentType = "text/html; charset=utf-8";
+        Span<char> cspNonceUtf16 = stackalloc char[32];
+        System.Security.Cryptography.RandomNumberGenerator.GetHexString(cspNonceUtf16, true);
+        response.Headers.ContentSecurityPolicy = $"base-uri {request.Scheme}://{request.Host}/;default-src 'none';script-src 'unsafe-inline' 'nonce-{cspNonceUtf16}'";
+        // unsafe-inline only applies to browsers that don't support nonce. Can be removed someday.
+
+        var writer = context.Response.BodyWriter;
 
         writer.Write("<!DOCTYPE html><html"u8);
 
@@ -50,8 +57,8 @@ public static class HtmlDocumentExtensions
 
         writer.Write("</head><body>"u8);
 
-        await document.WriteBodyContentsAsync(new HtmlWriter(writer), cancellationToken).ConfigureAwait(false);
+        return document.WriteBodyContentsAsync(new HtmlWriter(writer, new Validated.ValidatedAttribute("nonce", cspNonceUtf16)), context.RequestAborted);
 
-        writer.Write("</body></html>"u8);
+        // HTML5 spec doesn't require </body></html>, so that simplifies things a bit here.
     }
 }

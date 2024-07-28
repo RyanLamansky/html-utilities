@@ -7,8 +7,17 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 var app = builder.Build();
 
-app.MapFallback((HttpContext context) =>
-    context.WriteDocumentAsync(new TestDocument()));
+app.Use((context, next) =>
+{
+    context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+    {
+        Private = true,
+        NoCache = true,
+    };
+
+    return next();
+});
+app.MapFallback(new TestDocument().WriteToAsync);
 
 await app.RunAsync().ConfigureAwait(false);
 
@@ -21,20 +30,7 @@ class TestDocument : IHtmlDocument
     Task IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
     {
         writer.WriteElement("p", null, children => children.WriteText("Test bytes."));
+        writer.WriteScript(ValidatedScript.ForInlineSource("console.log('test')"));
         return Task.CompletedTask;
-    }
-}
-
-static class Extensions
-{
-    public static Task WriteDocumentAsync(this HttpContext context, IHtmlDocument document)
-    {
-        var request = context.Request;
-        var response = context.Response;
-        response.ContentType = "text/html; charset=utf-8";
-        var baseUri = $"{request.Scheme}://{request.Host}/";
-        response.Headers.ContentSecurityPolicy = $"default-src {baseUri}; base-uri {baseUri}";
-
-        return document.WriteAsync(response.BodyWriter, context.RequestAborted);
     }
 }
