@@ -2,14 +2,6 @@
 
 public static class ValidatedAttributeNameTests
 {
-    [Fact]
-    public static void ValidatedAttributeNameUnconstructedThrows()
-    {
-        var array = new ValidatedAttributeName[1];
-
-        Assert.Throws<InvalidOperationException>(array[0].ToString);
-    }
-
     [Theory]
     [InlineData("")]
     [InlineData(" ")]

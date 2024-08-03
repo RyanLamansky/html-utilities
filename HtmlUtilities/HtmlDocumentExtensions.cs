@@ -31,9 +31,9 @@ public static class HtmlDocumentExtensions
 
         writer.Write("<!DOCTYPE html><html"u8);
 
-        byte[]? validated;
+        ReadOnlyMemory<byte> validated;
 
-        if ((validated = document.Language.value) is not null)
+        if (!(validated = document.Language.value).IsEmpty)
         {
             writer.Write(" lang"u8);
             writer.Write(validated);
@@ -41,14 +41,14 @@ public static class HtmlDocumentExtensions
 
         writer.Write("><head><meta charset=utf-8><meta name=viewport content=\"width=device-width, initial-scale=1\">"u8);
 
-        if ((validated = document.Title.value) is not null)
+        if (!(validated = document.Title.value).IsEmpty)
         {
             writer.Write("<title>"u8);
             writer.Write(validated);
             writer.Write("</title>"u8);
         }
 
-        if ((validated = document.Description.value) is not null)
+        if (!(validated = document.Description.value).IsEmpty)
         {
             writer.Write("<meta name=description content"u8);
             writer.Write(validated);

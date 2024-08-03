@@ -71,7 +71,7 @@ public sealed class HtmlWriter
         var start = element.start;
         var end = element.end;
 
-        if (start is null || end is null)
+        if (start.IsEmpty)
             throw new ArgumentException("element was never initialized.", nameof(element));
 
         writer.Write(start);
@@ -134,14 +134,14 @@ public sealed class HtmlWriter
         var start = element.start;
         var end = element.end;
 
-        if (start is null || end is null)
+        if (start.IsEmpty)
             throw new ArgumentException("element was never initialized.", nameof(element));
 
         if (attributes is null)
             writer.Write(start);
         else
         {
-            writer.Write(element.start.AsSpan(0, start.Length - 1));
+            writer.Write(start[..^1]);
 
             attributes(new AttributeWriter(this.writer));
 
@@ -200,7 +200,10 @@ public sealed class HtmlWriter
     /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void WriteElementSelfClosing(ValidatedElement element)
     {
-        var start = element.start ?? throw new ArgumentException("element was never initialized.", nameof(element));
+        var start = element.start;
+        if (start.IsEmpty)
+            throw new ArgumentException("element was never initialized.", nameof(element));
+
         this.writer.Write(start);
     }
 
@@ -236,12 +239,15 @@ public sealed class HtmlWriter
     public void WriteElementSelfClosing(ValidatedElement element, Action<AttributeWriter>? attributes = null)
     {
         var writer = this.writer;
-        var start = element.start ?? throw new ArgumentException("element was never initialized.", nameof(element));
+        var start = element.start;
+        if (start.IsEmpty)
+            throw new ArgumentException("element was never initialized.", nameof(element));
+
         if (attributes is null)
             writer.Write(start);
         else
         {
-            writer.Write(element.start.AsSpan(0, start.Length - 1));
+            writer.Write(start[..^1]);
 
             attributes(new AttributeWriter(this.writer));
 
@@ -284,13 +290,7 @@ public sealed class HtmlWriter
     /// </summary>
     /// <param name="text">The text to write.</param>
     public void WriteText(ValidatedText text)
-    {
-        var value = text.value;
-        if (value is null)
-            return;
-
-        this.writer.Write(value);
-    }
+        => this.writer.Write(text.value);
 
     /// <summary>
     /// Writes text.
@@ -317,15 +317,15 @@ public sealed class HtmlWriter
     /// Writes a pre-validated script element.
     /// </summary>
     /// <param name="script">The script element to write.</param>
-    /// <exception cref="ArgumentException"><paramref name="script"/> was never initialized.</exception>
     public void WriteScript(ValidatedScript script)
     {
-        if (script.value is null)
-            throw new ArgumentException("script was never initialized.", nameof(script));
+        var value = script.value;
+        if (value.IsEmpty)
+            return;
 
         writer.Write("<script"u8);
         writer.Write(this.cspNonce.value);
-        writer.Write(script.value);
+        writer.Write(value);
         writer.Write("</script>"u8);
     }
 
@@ -351,14 +351,14 @@ public sealed class HtmlWriter
         var start = element.start;
         var end = element.end;
 
-        if (start is null || end is null)
+        if (start.IsEmpty)
             throw new ArgumentException("element was never initialized.", nameof(element));
 
         if (attributes is null)
             writer.Write(start);
         else
         {
-            writer.Write(start.AsSpan(0, start.Length - 1));
+            writer.Write(start[..^1]);
 
             attributes(new AttributeWriter(this.writer));
 
@@ -415,7 +415,7 @@ public sealed class HtmlWriter
         var validatedName = elementNameWriter.WrittenMemory;
 
         WriteLessThan(writer);
-        writer.Write(validatedName.Span);
+        writer.Write(validatedName);
 
         if (attributes is not null)
             attributes(new AttributeWriter(writer));
@@ -437,7 +437,7 @@ public sealed class HtmlWriter
 
                 var writer = htmlWriterAsync.writer;
                 writer.Write("</"u8);
-                writer.Write(validatedName.Span);
+                writer.Write(validatedName);
                 WriteGreaterThan(writer);
             }
             finally

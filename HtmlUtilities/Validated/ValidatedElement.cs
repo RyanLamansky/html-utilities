@@ -7,8 +7,8 @@ namespace HtmlUtilities.Validated;
 /// </summary>
 public readonly struct ValidatedElement
 {
-    internal readonly byte[]? start;
-    internal readonly byte[]? end;
+    internal readonly ReadOnlyMemory<byte> start;
+    internal readonly ReadOnlyMemory<byte> end;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedElement"/> that contains no attributes.
@@ -56,40 +56,34 @@ public readonly struct ValidatedElement
     {
         attributes ??= [];
 
-        var elementNameValue = name.value ?? throw new ArgumentException("name was never initialized.", nameof(name));
+        var elementNameValue = name.value;
         var attributeValueLengthSum = 0;
         foreach (var attribute in attributes)
-        {
-            var value = attribute.value;
-            if (value is null)
-                continue;
+            attributeValueLengthSum += attribute.value.Length;
 
-            attributeValueLengthSum += value.Length;
-        }
-
-        var buffer = this.start = new byte[elementNameValue.Length + attributeValueLengthSum + 2];
+        var buffer = new byte[elementNameValue.Length + attributeValueLengthSum + 2];
         buffer[0] = (byte)'<';
-        Array.Copy(elementNameValue, 0, buffer, 1, elementNameValue.Length);
+        elementNameValue.CopyTo(buffer.AsMemory(1));
 
         var written = elementNameValue.Length + 1;
         foreach (var attribute in attributes)
         {
             var value = attribute.value;
-            if (value is null)
-                continue;
-
-            Array.Copy(value, 0, buffer, written, value.Length);
-
+            value.CopyTo(buffer.AsMemory(written));
             written += value.Length;
         }
 
         buffer[^1] = (byte)'>';
 
-        buffer = this.end = new byte[elementNameValue.Length + 3];
+        this.start = buffer;
+
+        buffer = new byte[elementNameValue.Length + 3];
         buffer[0] = (byte)'<';
         buffer[1] = (byte)'/';
-        Array.Copy(elementNameValue, 0, buffer, 2, elementNameValue.Length);
+        elementNameValue.CopyTo(buffer.AsMemory(2));
         buffer[^1] = (byte)'>';
+
+        this.end = buffer;
     }
 
     /// <summary>
@@ -118,6 +112,5 @@ public readonly struct ValidatedElement
     /// Returns the element start tag in string form.
     /// </summary>
     /// <returns>A string representation of the element start tag.</returns>
-    /// <exception cref="InvalidOperationException">This <see cref="ValidatedElement"/> was never initialized.</exception>
-    public override string ToString() => Encoding.UTF8.GetString(start ?? throw new InvalidOperationException("This ValidatedElement was never initialized."));
+    public override string ToString() => Encoding.UTF8.GetString(start);
 }

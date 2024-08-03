@@ -7,12 +7,9 @@ namespace HtmlUtilities.Validated;
 /// </summary>
 public readonly struct ValidatedScript
 {
-    internal readonly byte[] value;
+    internal readonly ReadOnlyMemory<byte> value;
 
-    private ValidatedScript(byte[] value)
-    {
-        this.value = value;
-    }
+    private ValidatedScript(ReadOnlyMemory<byte> value) => this.value = value;
 
     /// <summary>
     /// Creates a validated script element that uses the `src` attribute to link to an external file.
@@ -30,7 +27,7 @@ public readonly struct ValidatedScript
 
             writer.Write('>');
 
-            return new ValidatedScript(writer.ToArray());
+            return new ValidatedScript(writer);
         }
         finally
         {
@@ -54,7 +51,7 @@ public readonly struct ValidatedScript
             writer.Write('>');
 
             Validate(ref writer, script);
-            return new ValidatedScript(writer.ToArray());
+            return new ValidatedScript(writer);
         }
         finally
         {
@@ -79,6 +76,5 @@ public readonly struct ValidatedScript
     /// Returns the script element in string form.
     /// </summary>
     /// <returns>A string representation of the script element</returns>
-    /// <exception cref="InvalidOperationException">This <see cref="ValidatedScript"/> was never initialized.</exception>
-    public override string ToString() => $"<script{Encoding.UTF8.GetString(value ?? throw new InvalidOperationException("This ValidatedScript was never initialized."))}</script>";
+    public override string ToString() => $"<script{Encoding.UTF8.GetString(value)}</script>";
 }

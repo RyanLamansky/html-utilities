@@ -7,7 +7,7 @@ namespace HtmlUtilities.Validated;
 /// </summary>
 public readonly struct ValidatedElementName
 {
-    internal readonly byte[]? value;
+    internal readonly ReadOnlyMemory<byte> value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedElementName"/> value from the provided name.
@@ -21,7 +21,7 @@ public readonly struct ValidatedElementName
         {
             Validate(name, ref writer);
 
-            this.value = writer.ToArray();
+            this.value = writer;
         }
         finally
         {
@@ -69,6 +69,5 @@ public readonly struct ValidatedElementName
     /// Converts the validated name to a string.
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
-    /// <exception cref="InvalidOperationException">This <see cref="ValidatedElementName"/> was never initialized.</exception>
-    public override string ToString() => Encoding.UTF8.GetString(value ?? throw new InvalidOperationException("This ValidatedElementName was never initialized."));
+    public override string ToString() => Encoding.UTF8.GetString(value);
 }

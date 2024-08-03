@@ -9,7 +9,7 @@ namespace HtmlUtilities.Validated;
 public readonly struct ValidatedAttribute
 #pragma warning restore
 {
-    internal readonly byte[]? value;
+    internal readonly ReadOnlyMemory<byte> value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttribute"/> from the provided validated name and value.
@@ -19,18 +19,15 @@ public readonly struct ValidatedAttribute
     /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
     public ValidatedAttribute(ValidatedAttributeName name, ValidatedAttributeValue value)
     {
-        var nv = name.value ?? throw new ArgumentException("name was never initialized.", nameof(name));
+        var nv = name.value;
         var vv = value.value;
-        if (vv is null)
-        {
-            this.value = nv;
-            return;
-        }
 
-        var v = this.value = new byte[nv.Length + vv.Length];
+        var v = new byte[nv.Length + vv.Length];
 
-        Array.Copy(nv, v, nv.Length);
-        Array.Copy(vv, 0, v, nv.Length, vv.Length);
+        nv.CopyTo(v);
+        vv.CopyTo(v.AsMemory(nv.Length));
+
+        this.value = v;
     }
 
     /// <summary>
@@ -63,7 +60,7 @@ public readonly struct ValidatedAttribute
     /// Returns a string of this attribute as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
-    public override string ToString() => value is null ? "" : Encoding.UTF8.GetString(value);
+    public override string ToString() => Encoding.UTF8.GetString(value);
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.

@@ -53,15 +53,18 @@ internal ref struct ArrayBuilder<T>(int initialCapacity)
         written += length;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(ReadOnlyMemory<T> values) => Write(values.Span);
+
     internal readonly T[] Buffer => buffer;
 
     internal readonly ReadOnlyMemory<T> WrittenMemory => buffer.AsMemory(0, written);
 
     public readonly ReadOnlySpan<T> WrittenSpan => buffer.AsSpan(0, written);
 
-    public readonly T[] ToArray() => WrittenSpan.ToArray();
-
     public readonly void Release() => ArrayPool<T>.Shared.Return(buffer);
+
+    public static implicit operator ReadOnlyMemory<T>(ArrayBuilder<T> builder) => builder.WrittenSpan.ToArray();
 }
 
 internal static class ArrayBuilderExtensions

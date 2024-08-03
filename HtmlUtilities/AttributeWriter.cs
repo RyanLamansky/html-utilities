@@ -11,32 +11,20 @@ public readonly struct AttributeWriter
 {
     private readonly IBufferWriter<byte> writer;
 
-    internal AttributeWriter(IBufferWriter<byte> writer)
-    {
-        System.Diagnostics.Debug.Assert(writer is not null);
-
-        this.writer = writer;
-    }
+    internal AttributeWriter(IBufferWriter<byte> writer) => this.writer = writer;
 
     /// <summary>
     /// Writes a validated attribute name with no value.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>
-    /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
-    public void Write(ValidatedAttributeName name)
-    {
-        writer.Write(name.value ?? throw new ArgumentException("name was never initialized.", nameof(name)));
-    }
+    public void Write(ValidatedAttributeName name) => writer.Write(name.value);
 
     /// <summary>
     /// Writes a validated attribute.
     /// </summary>
     /// <param name="attribute">The validated attribute to write.</param>
     /// <exception cref="ArgumentException"><paramref name="attribute"/> was never initialized.</exception>
-    public void Write(ValidatedAttribute attribute)
-    {
-        writer.Write(attribute.value ?? throw new ArgumentException("attribute was never initialized.", nameof(attribute)));
-    }
+    public void Write(ValidatedAttribute attribute) => writer.Write(attribute.value);
 
     /// <summary>
     /// Writes an attribute that consists only of a name, no value.

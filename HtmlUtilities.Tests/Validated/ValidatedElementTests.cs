@@ -2,20 +2,6 @@
 
 public static class ValidatedElementTests
 {
-    [Fact]
-    public static void ValidatedElementUnconstructedThrows()
-    {
-        var array = new ValidatedElement[1];
-
-        Assert.Throws<InvalidOperationException>(array[0].ToString);
-    }
-
-    [Fact]
-    public static void ValidatedElementThrowsForUnconstructedElementName()
-    {
-        var array = new ValidatedElementName[1];
-        Assert.Equal("name", Assert.Throws<ArgumentException>(() => new ValidatedElement(array[0])).ParamName);
-    }
 
     [Fact]
     public static void ValidatedElementDiscardsUnconstructedAttributes()
