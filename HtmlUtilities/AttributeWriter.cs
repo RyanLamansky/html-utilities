@@ -14,6 +14,33 @@ public readonly struct AttributeWriter
     internal AttributeWriter(IBufferWriter<byte> writer) => this.writer = writer;
 
     /// <summary>
+    /// Writes an attribute without a value.
+    /// </summary>
+    /// <param name="nameWithLeadingSpace">The name of the attribute, including a leading space to separate it.</param>
+    internal void Write(ReadOnlySpan<byte> nameWithLeadingSpace)
+    {
+        System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
+
+        writer.Write(nameWithLeadingSpace);
+    }
+
+    /// <summary>
+    /// Writes an attribute if a value is provided.
+    /// </summary>
+    /// <param name="nameWithLeadingSpace">The name of the attribute, including a leading space to separate it.</param>
+    /// <param name="value">The value to write. If null, the attribute is completely omitted.</param>
+    internal void Write(ReadOnlySpan<byte> nameWithLeadingSpace, ValidatedAttributeValue? value)
+    {
+        System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
+
+        if (!value.HasValue)
+            return;
+
+        writer.Write(nameWithLeadingSpace);
+        writer.Write(value.Value.value);
+    }
+
+    /// <summary>
     /// Writes a validated attribute name with no value.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>

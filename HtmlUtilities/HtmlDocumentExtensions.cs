@@ -24,8 +24,8 @@ public static class HtmlDocumentExtensions
         response.ContentType = "text/html; charset=utf-8";
         Span<char> cspNonceUtf16 = stackalloc char[32];
         System.Security.Cryptography.RandomNumberGenerator.GetHexString(cspNonceUtf16, true);
-        response.Headers.ContentSecurityPolicy = $"base-uri {request.Scheme}://{request.Host}/;default-src 'none';script-src 'unsafe-inline' 'nonce-{cspNonceUtf16}'";
-        // unsafe-inline only applies to browsers that don't support nonce. Can be removed someday.
+        response.Headers.ContentSecurityPolicy = $"base-uri {request.Scheme}://{request.Host}/;default-src 'unsafe-inline' 'nonce-{cspNonceUtf16}'";
+        // unsafe-inline only applies to browsers that don't support nonce. Can be removed when security scanners stop asking for it.
 
         var writer = context.Response.BodyWriter;
 
@@ -55,9 +55,17 @@ public static class HtmlDocumentExtensions
             writer.Write(">"u8);
         }
 
+        var htmlWriter = new HtmlWriter(writer, new Validated.ValidatedAttribute("nonce", cspNonceUtf16));
+
+        foreach (var link in document.Links ?? [])
+            link.Write(htmlWriter);
+
+        foreach (var style in document.Styles ?? [])
+            style.Write(htmlWriter);
+
         writer.Write("</head><body>"u8);
 
-        return document.WriteBodyContentsAsync(new HtmlWriter(writer, new Validated.ValidatedAttribute("nonce", cspNonceUtf16)), context.RequestAborted);
+        return document.WriteBodyContentsAsync(htmlWriter, context.RequestAborted);
 
         // HTML5 spec doesn't require </body></html>, so that simplifies things a bit here.
     }

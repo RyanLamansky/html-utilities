@@ -40,7 +40,7 @@ public readonly struct ValidatedElement
     }
 
     // Internal fast path for known-safe tag pairs.
-    internal ValidatedElement(byte[] start, byte[] end)
+    internal ValidatedElement(ReadOnlyMemory<byte> start, ReadOnlyMemory<byte> end)
     {
         this.start = start;
         this.end = end;

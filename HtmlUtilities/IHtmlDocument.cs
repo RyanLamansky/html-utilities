@@ -1,4 +1,5 @@
 ﻿using HtmlUtilities.Validated;
+using HtmlUtilities.Validated.Standardized;
 
 namespace HtmlUtilities;
 
@@ -24,6 +25,18 @@ public interface IHtmlDocument
     /// By default, this is not emitted.
     /// </summary>
     ValidatedAttributeValue Description => new();
+
+    /// <summary>
+    /// The document's "link" elements.
+    /// Empty by default.
+    /// </summary>
+    IReadOnlyCollection<Link> Links => [];
+
+    /// <summary>
+    /// The document's "link" elements.
+    /// Empty by default.
+    /// </summary>
+    IReadOnlyCollection<Style> Styles => [];
 
     /// <summary>
     /// Writes the content of an HTML document's body.

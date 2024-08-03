@@ -1,5 +1,6 @@
 using HtmlUtilities;
 using HtmlUtilities.Validated;
+using HtmlUtilities.Validated.Standardized;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,7 @@ var app = builder.Build();
 
 app.Use((context, next) =>
 {
-    context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+    context.Response.GetTypedHeaders().CacheControl = new()
     {
         Private = true,
         NoCache = true,
@@ -26,6 +27,7 @@ class TestDocument : IHtmlDocument
     ValidatedAttributeValue IHtmlDocument.Language => "en-us";
     ValidatedText IHtmlDocument.Title => "Hello World!";
     ValidatedAttributeValue IHtmlDocument.Description => "Test page for HTML Utilities";
+    IReadOnlyCollection<Style> IHtmlDocument.Styles { get; } = [new() { Content = string.Join('\n', File.ReadAllLines("styles.css")) }]; 
 
     Task IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
     {

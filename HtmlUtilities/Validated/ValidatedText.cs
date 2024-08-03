@@ -37,7 +37,8 @@ public readonly struct ValidatedText
         foreach (var codePoint in CodePoint.GetEnumerable(text))
         {
             var categories = codePoint.InfraCategories;
-            if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
+            if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 &&
+                (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control | CodePointInfraCategory.NonCharacter)) != 0)
                 continue;
 
             switch (codePoint.Value)

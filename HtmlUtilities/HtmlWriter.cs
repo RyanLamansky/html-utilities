@@ -16,7 +16,7 @@ public sealed class HtmlWriter
         "</html>"u8.ToArray());
 
     private readonly IBufferWriter<byte> writer;
-    private readonly ValidatedAttribute cspNonce;
+    internal readonly ValidatedAttribute cspNonce;
 
     internal HtmlWriter(IBufferWriter<byte> writer)
         : this(writer, new ValidatedAttribute())
@@ -119,6 +119,32 @@ public sealed class HtmlWriter
         var chars = writer.GetSpan();
         chars[0] = (byte)'<';
         writer.Advance(1);
+    }
+
+    internal void WriteElement(ReadOnlySpan<byte> nameWithAngleBrackets, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
+    {
+        var writer = this.writer;
+        var start = nameWithAngleBrackets;
+        Span<byte> end = stackalloc byte[nameWithAngleBrackets.Length + 1];
+        end[0] = (byte)'<';
+        end[1] = (byte)'/';
+        nameWithAngleBrackets[1..].CopyTo(end[2..]);
+
+        if (attributes is null)
+            writer.Write(start);
+        else
+        {
+            writer.Write(start[..^1]);
+
+            attributes(new AttributeWriter(this.writer));
+
+            WriteGreaterThan(writer);
+        }
+
+        if (children is not null)
+            children(this);
+
+        writer.Write(end);
     }
 
     /// <summary>
@@ -253,6 +279,18 @@ public sealed class HtmlWriter
 
             WriteGreaterThan(writer);
         }
+    }
+
+    internal void WriteElementSelfClosing(ReadOnlySpan<byte> nameWithAngleBrackets, Action<AttributeWriter>? attributes = null)
+    {
+        System.Diagnostics.Debug.Assert(nameWithAngleBrackets[0] == (byte)'<' && nameWithAngleBrackets[nameWithAngleBrackets.Length - 1] == (byte)'>');
+
+        writer.Write(nameWithAngleBrackets[..^1]);
+
+        if (attributes is not null)
+            attributes(new AttributeWriter(writer));
+
+        WriteGreaterThan(writer);
     }
 
     /// <summary>
