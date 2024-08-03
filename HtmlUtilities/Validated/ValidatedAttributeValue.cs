@@ -5,31 +5,28 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// A pre-validated and formatted attribute value ready to be written.
 /// </summary>
+/// <remarks>The rules described by https://html.spec.whatwg.org/#attributes-2 are closely followed.</remarks>
 public readonly struct ValidatedAttributeValue
 {
-    private static readonly byte[] Empty = "=\"\""u8.ToArray();
-
     internal readonly ReadOnlyMemory<byte> value;
 
     /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
     /// </summary>
     /// <param name="value">The value to prepare as an attribute.</param>
-    public ValidatedAttributeValue(ReadOnlySpan<char> value)
-    {
-        // See https://html.spec.whatwg.org/#attributes-2 for reference.
+    public ValidatedAttributeValue(ReadOnlySpan<char> value) => this.value = ToUtf8Array(value);
 
-        if (value.Length == 0)
-        {
-            this.value = Empty;
-            return;
-        }
+    private static ReadOnlyMemory<byte> ToUtf8Array(ReadOnlySpan<char> value)
+    {
+        if (value.IsEmpty)
+            return Array.Empty<byte>(); // Empty attribute syntax implicitly has a value of an empty string.
 
         var writer = new ArrayBuilder<byte>(value.Length);
+
         try
         {
             Validate(value, ref writer);
-            this.value = writer;
+            return writer;
         }
         finally
         {
@@ -53,10 +50,7 @@ public readonly struct ValidatedAttributeValue
     public ValidatedAttributeValue(int? value)
     {
         if (value is null)
-        {
-            this.value = Empty;
             return;
-        }
 
         this.value = ToUtf8Array(value.GetValueOrDefault());
     }
@@ -77,10 +71,7 @@ public readonly struct ValidatedAttributeValue
     public ValidatedAttributeValue(uint? value)
     {
         if (value is null)
-        {
-            this.value = Empty;
             return;
-        }
 
         this.value = ToUtf8Array(value.GetValueOrDefault());
     }
@@ -101,10 +92,7 @@ public readonly struct ValidatedAttributeValue
     public ValidatedAttributeValue(long? value)
     {
         if (value is null)
-        {
-            this.value = Empty;
             return;
-        }
 
         this.value = ToUtf8Array(value.GetValueOrDefault());
     }
@@ -125,10 +113,7 @@ public readonly struct ValidatedAttributeValue
     public ValidatedAttributeValue(ulong? value)
     {
         if (value is null)
-        {
-            this.value = Empty;
             return;
-        }
 
         this.value = ToUtf8Array(value.GetValueOrDefault());
     }
@@ -233,6 +218,9 @@ public readonly struct ValidatedAttributeValue
 
     internal static void Validate(ReadOnlySpan<char> value, ref ArrayBuilder<byte> writer)
     {
+        if (value.IsEmpty)
+            return;
+
         foreach (var codePoint in CodePoint.GetEnumerable(value))
         {
             switch (codePoint.Value)
@@ -311,8 +299,8 @@ public readonly struct ValidatedAttributeValue
     public static implicit operator ValidatedAttributeValue(ReadOnlySpan<char> value) => new(value);
 
     /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="string"/>.
     /// </summary>
     /// <param name="value">The value to prepare as an attribute.</param>
-    public static implicit operator ValidatedAttributeValue(string value) => new(value);
+    public static implicit operator ValidatedAttributeValue(string? value) => new(value);
 }

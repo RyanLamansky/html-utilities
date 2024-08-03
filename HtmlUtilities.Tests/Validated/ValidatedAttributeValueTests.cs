@@ -11,12 +11,15 @@ public static class ValidatedAttributeValueTests
     }
 
     [Theory]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    [InlineData("\"", "=\"&quot;\"")]
     [InlineData("en", "=en")]
     [InlineData("en-us", "=en-us")]
     [InlineData("top left", "=\"top left\"")]
     [InlineData("d&d", "=d&amp;d")]
     [InlineData("Dungeons & Dragons", "=\"Dungeons &amp; Dragons\"")]
-    public static void AttributeValueIsFormattedCorrectly(string source, string expected)
+    public static void AttributeValueIsFormattedCorrectly(string? source, string expected)
     {
         Assert.Equal(expected, new ValidatedAttributeValue(source).ToString());
     }
@@ -24,11 +27,11 @@ public static class ValidatedAttributeValueTests
     [Fact]
     public static void AttributeValueFromNullIsEmpty()
     {
-        Assert.Equal("=\"\"", new ValidatedAttributeValue((string?)null).ToString());
-        Assert.Equal("=\"\"", new ValidatedAttributeValue((int?)null).ToString());
-        Assert.Equal("=\"\"", new ValidatedAttributeValue((uint?)null).ToString());
-        Assert.Equal("=\"\"", new ValidatedAttributeValue((long?)null).ToString());
-        Assert.Equal("=\"\"", new ValidatedAttributeValue((ulong?)null).ToString());
+        Assert.Equal("", new ValidatedAttributeValue((string?)null).ToString());
+        Assert.Equal("", new ValidatedAttributeValue((int?)null).ToString());
+        Assert.Equal("", new ValidatedAttributeValue((uint?)null).ToString());
+        Assert.Equal("", new ValidatedAttributeValue((long?)null).ToString());
+        Assert.Equal("", new ValidatedAttributeValue((ulong?)null).ToString());
     }
 
     [Theory]

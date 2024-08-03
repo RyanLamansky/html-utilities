@@ -30,7 +30,7 @@ public readonly struct ValidatedAttributeName
 
     internal static void Validate(ReadOnlySpan<char> name, ref ArrayBuilder<byte> writer)
     {
-        if (name.Length == 0)
+        if (name.IsEmpty)
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
         writer.Write(' ');
@@ -38,7 +38,7 @@ public readonly struct ValidatedAttributeName
         {
             var categories = codePoint.InfraCategories;
             if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
-                continue;
+                throw new ArgumentException($"name has an invalid character, '{(char)codePoint.Value}'.", nameof(name));
 
             switch (codePoint.Value)
             {
@@ -65,10 +65,4 @@ public readonly struct ValidatedAttributeName
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided validated name and no value.
-    /// </summary>
-    /// <param name="name">A validated name.</param>
-    public static implicit operator ValidatedAttribute(ValidatedAttributeName name) => new(name);
 }
