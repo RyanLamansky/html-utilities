@@ -13,7 +13,7 @@ public class Style : StandardElement
     /// <summary>
     /// Applicable media.
     /// </summary>
-    public ValidatedAttributeValue? Media { get; set; }
+    public ValidatedAttributeValue? Media { get => GetAttribute(); set => SetAttribute(value); }
 
     internal sealed override void Write(HtmlWriter writer)
     {

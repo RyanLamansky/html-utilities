@@ -8,12 +8,12 @@ public class Link : StandardElement
     /// <summary>
     /// Relationship between the document containing the hyperlink and the destination resource.
     /// </summary>
-    public string? Rel { get; set; }
+    public ValidatedAttributeValue? Rel { get => GetAttribute(); set => SetAttribute(value); }
 
     /// <summary>
     /// Address of the hyperlink.
     /// </summary>
-    public string? Href { get; set; }
+    public ValidatedAttributeValue? Href { get => GetAttribute(); set => SetAttribute(value); }
 
     internal sealed override void Write(HtmlWriter writer)
     {

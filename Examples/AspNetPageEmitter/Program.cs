@@ -32,6 +32,10 @@ class TestDocument : IHtmlDocument
     Task IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
     {
         writer.WriteElement("p", null, children => children.WriteText("Test bytes."));
+        writer.WriteElement("p", null, children =>
+        {
+            children.WriteElement("a", attributes => attributes.Write("href", "/"), children => children.WriteText("Test link."));
+        });
         writer.WriteScript(ValidatedScript.ForInlineSource("console.log('test')"));
         return Task.CompletedTask;
     }
