@@ -359,6 +359,13 @@ public sealed class HtmlWriter
         => WriteScript(null, script);
 
     /// <summary>
+    /// Writes a script element that uses attributes exclusively.
+    /// </summary>
+    /// <param name="attributes">Writes attributes to the element.</param>
+    public void WriteScript(Action<AttributeWriter> attributes)
+        => WriteScript(attributes, default);
+
+    /// <summary>
     /// Writes a pre-validated script element.
     /// </summary>
     /// <param name="attributes">If provided, writes attributes to the element.</param>
@@ -366,9 +373,6 @@ public sealed class HtmlWriter
     public void WriteScript(Action<AttributeWriter>? attributes, ValidatedScript script)
     {
         var value = script.value;
-        if (value.IsEmpty)
-            return;
-
         writer.Write("<script"u8);
         writer.Write(this.cspNonce.value);
         if (attributes is not null)
