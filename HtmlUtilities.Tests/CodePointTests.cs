@@ -92,7 +92,7 @@ public static class CodePointTests
     [MemberData(nameof(Utf16TestCasesWithInvalidCodePoints))]
     public static void EncodeUtf16FromEnumerableCodePoints(string? expected, CodePoint[] value)
     {
-        Assert.Equal(expected is null ? "" : expected, CodePoint.EncodeUtf16(value).ToArray());
+        Assert.Equal(expected is null ? "" : expected, new string(CodePoint.EncodeUtf16(value).ToArray()));
     }
 
     [Theory]
