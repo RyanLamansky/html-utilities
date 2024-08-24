@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace HtmlUtilities.Validated;
 
@@ -12,7 +14,7 @@ public abstract class StandardElement
     private readonly Dictionary<string, ValidatedAttributeValue> attributes = [];
 
     private protected ValidatedAttributeValue? GetAttribute([CallerMemberName] string name = null!)
-        => attributes.TryGetValue(name, out var value) ? value : null;
+        => attributes.TryGetValue(name, out var value) ? value : (ValidatedAttributeValue?)null;
 
     private protected void SetAttribute(ValidatedAttributeValue? value, [CallerMemberName] string name = null!)
     {
@@ -57,5 +59,16 @@ public abstract class StandardElement
         writer.Write(" accesskey"u8, AccessKey);
         writer.Write(" id"u8, Id);
         writer.Write(" title"u8, Title);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        var buffer = new ArrayBufferWriter<byte>();
+        var writer = new HtmlWriter(buffer);
+
+        Write(writer);
+
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 }
