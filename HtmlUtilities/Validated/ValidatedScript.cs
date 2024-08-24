@@ -39,7 +39,7 @@ public readonly struct ValidatedScript
     /// Creates a validated script element that uses inline content.
     /// </summary>
     /// <returns>The validated script.</returns>
-    /// <exception cref="ArgumentException"><paramref name="script"/>  contains a potentially invalid character sequence.</exception>
+    /// <exception cref="ArgumentException"><paramref name="script"/> contains a potentially invalid character sequence.</exception>
     public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ValidatedAttribute[]? attributes)
     {
         var writer = new ArrayBuilder<byte>(script.Length);
@@ -57,6 +57,20 @@ public readonly struct ValidatedScript
         {
             writer.Release();
         }
+    }
+
+    /// <summary>
+    /// Creates a validated script element that uses inline content from a <see cref="Standardized.ImportMap"/>.
+    /// </summary>
+    /// <returns>The validated script.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="importMap"/> cannot be null.</exception>
+    /// <exception cref="ArgumentException"><paramref name="importMap"/> contains a potentially invalid character sequence.</exception>
+    public static ValidatedScript ForInlineSource(Standardized.ImportMap importMap, params ValidatedAttribute[]? attributes)
+    {
+        ArgumentNullException.ThrowIfNull(importMap, nameof(importMap));
+
+        // Since importMap is guaranteed to be JSON-based, a fast path may be possible.
+        return ForInlineSource(importMap.ToString(), attributes);
     }
 
     internal static void Validate(ref ArrayBuilder<byte> writer, ReadOnlySpan<char> script)

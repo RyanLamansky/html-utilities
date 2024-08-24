@@ -31,6 +31,8 @@ public sealed class ImportMap
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IDictionary<string, IDictionary<string, string>>? Scopes { get; set; }
 
+    internal ReadOnlyMemory<byte> ToUtf8 => JsonSerializer.SerializeToUtf8Bytes(this, ImportMapSerializerContext.Default.ImportMap);
+
     /// <inheritdoc />
     public override string ToString() => JsonSerializer.Serialize(this, ImportMapSerializerContext.Default.ImportMap);
 }
