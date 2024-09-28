@@ -24,7 +24,7 @@ public static class HtmlDocumentExtensions
         response.ContentType = "text/html; charset=utf-8";
         Span<char> cspNonceUtf16 = stackalloc char[32];
         System.Security.Cryptography.RandomNumberGenerator.GetHexString(cspNonceUtf16, true);
-        response.Headers.ContentSecurityPolicy = $"base-uri {request.Scheme}://{request.Host}/;default-src 'unsafe-inline' 'nonce-{cspNonceUtf16}'";
+        response.Headers.ContentSecurityPolicy = $"base-uri {request.Scheme}://{request.Host}/;default-src 'unsafe-inline' 'nonce-{cspNonceUtf16}' connect-src: 'self'";
         // unsafe-inline only applies to browsers that don't support nonce. Can be removed when security scanners stop asking for it.
 
         var writer = context.Response.BodyWriter;
