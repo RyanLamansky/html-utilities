@@ -15,21 +15,21 @@ public sealed class ImportMap
     /// </summary>
     [JsonPropertyName("imports")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IDictionary<string, string>? Imports { get; set; }
+    public IReadOnlyDictionary<string, string>? Imports { get; set; }
 
     /// <summary>
     /// Provides integrity metadata for module sources.
     /// </summary>
     [JsonPropertyName("integrity")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IDictionary<string, string>? Integrity { get; set; }
+    public IReadOnlyDictionary<string, string>? Integrity { get; set; }
 
     /// <summary>
     /// Path-specific module specifier maps.
     /// </summary>
     [JsonPropertyName("scopes")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IDictionary<string, IDictionary<string, string>>? Scopes { get; set; }
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? Scopes { get; set; }
 
     internal ReadOnlyMemory<byte> ToUtf8 => JsonSerializer.SerializeToUtf8Bytes(this, ImportMapSerializerContext.Default.ImportMap);
 
@@ -37,6 +37,9 @@ public sealed class ImportMap
     public override string ToString() => JsonSerializer.Serialize(this, ImportMapSerializerContext.Default.ImportMap);
 }
 
+#if DEBUG
+[JsonSourceGenerationOptions(WriteIndented = true)]
+#endif
 [JsonSerializable(typeof(ImportMap))]
 internal sealed partial class ImportMapSerializerContext : JsonSerializerContext
 {
