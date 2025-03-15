@@ -24,10 +24,10 @@ await app.RunAsync().ConfigureAwait(false);
 
 class TestDocument : IHtmlDocument
 {
-    ValidatedAttributeValue IHtmlDocument.Language => "en-us";
-    ValidatedText IHtmlDocument.Title => "Hello World!";
-    ValidatedAttributeValue IHtmlDocument.Description => "Test page for HTML Utilities";
-    IReadOnlyCollection<Style> IHtmlDocument.Styles { get; } = [new() { Content = string.Join('\n', File.ReadAllLines("styles.css")) }]; 
+    ValidatedAttributeValue IHtmlDocument.Language => new("en-us");
+    ValidatedText IHtmlDocument.Title => new("Hello World!");
+    ValidatedAttributeValue IHtmlDocument.Description => new("Test page for HTML Utilities");
+    IReadOnlyCollection<Style> IHtmlDocument.Styles { get; } = [new() { Content = new(string.Join('\n', File.ReadAllLines("styles.css"))) }]; 
 
     Task IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
     {
