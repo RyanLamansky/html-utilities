@@ -17,7 +17,7 @@ public class Style : StandardElement
 
     internal sealed override void Write(HtmlWriter writer)
     {
-        writer.WriteElement("<style>"u8, attributes =>
+        writer.WriteElementRaw("<style>"u8, attributes =>
         {
             Write(attributes);
             attributes.Write(writer.cspNonce);

@@ -121,7 +121,7 @@ public sealed class HtmlWriter
         writer.Advance(1);
     }
 
-    internal void WriteElement(ReadOnlySpan<byte> nameWithAngleBrackets, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
+    internal void WriteElementRaw(ReadOnlySpan<byte> nameWithAngleBrackets, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         var writer = this.writer;
         var start = nameWithAngleBrackets;
@@ -188,6 +188,45 @@ public sealed class HtmlWriter
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public void WriteElement(ReadOnlySpan<char> name, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
+    {
+        var elementNameWriter = new ArrayBuilder<byte>(name.Length);
+        var writer = this.writer;
+
+        try
+        {
+            ValidatedElementName.Validate(name, ref elementNameWriter);
+            var validatedElement = elementNameWriter.WrittenSpan;
+
+            WriteLessThan(writer);
+            writer.Write(validatedElement);
+
+            if (attributes is not null)
+                attributes(new AttributeWriter(writer));
+
+            WriteGreaterThan(writer);
+
+            if (children is not null)
+                children(this);
+
+            writer.Write("</"u8);
+            writer.Write(validatedElement);
+        }
+        finally
+        {
+            elementNameWriter.Release();
+        }
+
+        WriteGreaterThan(writer);
+    }
+
+    /// <summary>
+    /// Writes an element with optional attributes and child content.
+    /// </summary>
+    /// <param name="name">The UTF-8 HTML element name.</param>
+    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
+    /// <param name="children">If provided, writes child elements.</param>
+    /// <exception cref="ArgumentException">The element name is not valid.</exception>
+    public void WriteElement(ReadOnlySpan<byte> name, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         var elementNameWriter = new ArrayBuilder<byte>(name.Length);
         var writer = this.writer;
