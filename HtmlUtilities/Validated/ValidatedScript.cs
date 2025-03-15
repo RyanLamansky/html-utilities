@@ -17,12 +17,15 @@ public readonly struct ValidatedScript
     /// <param name="source">The "src" attribute.</param>
     /// <param name="attributes">Optionally, other attributes for the script element.</param>
     /// <returns>The validated script.</returns>
-    public static ValidatedScript ForFileSource(ReadOnlySpan<char> source, params ValidatedAttribute[]? attributes)
+    public static ValidatedScript ForFileSource(ReadOnlySpan<char> source, params ReadOnlySpan<ValidatedAttribute> attributes)
     {
         var writer = new ArrayBuilder<byte>(source.Length);
         try
         {
-            foreach (var attribute in (attributes ?? Enumerable.Empty<ValidatedAttribute>()).Prepend(new ValidatedAttribute("src", source)))
+            var src = new ValidatedAttribute("src", source);
+            writer.Write(src.value);
+
+            foreach (var attribute in attributes)
                 writer.Write(attribute.value);
 
             writer.Write('>');
@@ -40,12 +43,12 @@ public readonly struct ValidatedScript
     /// </summary>
     /// <returns>The script to validate.</returns>
     /// <exception cref="ArgumentException"><paramref name="script"/> contains a potentially invalid character sequence.</exception>
-    public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ValidatedAttribute[]? attributes)
+    public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ReadOnlySpan<ValidatedAttribute> attributes)
     {
         var writer = new ArrayBuilder<byte>(script.Length);
         try
         {
-            foreach (var attribute in attributes ?? [])
+            foreach (var attribute in attributes)
                 writer.Write(attribute.value);
 
             writer.Write('>');
@@ -64,12 +67,12 @@ public readonly struct ValidatedScript
     /// </summary>
     /// <returns>The UTF-8 script to validate.</returns>
     /// <exception cref="ArgumentException"><paramref name="script"/> contains a potentially invalid character sequence.</exception>
-    public static ValidatedScript ForInlineSource(ReadOnlySpan<byte> script, params ValidatedAttribute[]? attributes)
+    public static ValidatedScript ForInlineSource(ReadOnlySpan<byte> script, params ReadOnlySpan<ValidatedAttribute> attributes)
     {
         var writer = new ArrayBuilder<byte>(script.Length);
         try
         {
-            foreach (var attribute in attributes ?? [])
+            foreach (var attribute in attributes)
                 writer.Write(attribute.value);
 
             writer.Write('>');
@@ -89,7 +92,7 @@ public readonly struct ValidatedScript
     /// <returns>The validated script.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="importMap"/> cannot be null.</exception>
     /// <exception cref="ArgumentException"><paramref name="importMap"/> contains a potentially invalid character sequence.</exception>
-    public static ValidatedScript ForInlineSource(Standardized.ImportMap importMap, params ValidatedAttribute[]? attributes)
+    public static ValidatedScript ForInlineSource(Standardized.ImportMap importMap, params ReadOnlySpan<ValidatedAttribute> attributes)
     {
         ArgumentNullException.ThrowIfNull(importMap);
 

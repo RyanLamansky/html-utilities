@@ -15,7 +15,7 @@ public readonly struct ValidatedElement
     /// </summary>
     /// <param name="elementName">A validated element name.</param>
     public ValidatedElement(ValidatedElementName elementName)
-        : this(elementName, (IEnumerable<ValidatedAttribute>?)null)
+        : this(elementName, [])
     {
     }
 
@@ -25,7 +25,7 @@ public readonly struct ValidatedElement
     /// <param name="name">An element name to be validated and used.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public ValidatedElement(ReadOnlySpan<char> name)
-        : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)null)
+        : this(new ValidatedElementName(name), [])
     {
     }
 
@@ -35,17 +35,7 @@ public readonly struct ValidatedElement
     /// <param name="name">A UTF-8  element name to be validated and used.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public ValidatedElement(ReadOnlySpan<byte> name)
-        : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)null)
-    {
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedElement"/> including attributes.
-    /// </summary>
-    /// <param name="name">A validated element name.</param>
-    /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
-    public ValidatedElement(ValidatedElementName name, params ValidatedAttribute[]? attributes)
-        : this(name, (IEnumerable<ValidatedAttribute>?)attributes)
+        : this(new ValidatedElementName(name), [])
     {
     }
 
@@ -61,11 +51,8 @@ public readonly struct ValidatedElement
     /// </summary>
     /// <param name="name">A validated element name.</param>
     /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
-    /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
-    public ValidatedElement(ValidatedElementName name, IEnumerable<ValidatedAttribute>? attributes)
+    public ValidatedElement(ValidatedElementName name, params ReadOnlySpan<ValidatedAttribute> attributes)
     {
-        attributes ??= [];
-
         var elementNameValue = name.value;
         var attributeValueLengthSum = 0;
         foreach (var attribute in attributes)

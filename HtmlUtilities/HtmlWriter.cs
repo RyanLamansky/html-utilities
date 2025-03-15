@@ -26,7 +26,7 @@ public sealed class HtmlWriter
     internal HtmlWriter(IBufferWriter<byte> writer, ValidatedAttribute cspNonce)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
-        ArgumentNullException.ThrowIfNull(this.cspNonce = cspNonce, nameof(cspNonce));
+        this.cspNonce = cspNonce;
     }
 
     /// <summary>
