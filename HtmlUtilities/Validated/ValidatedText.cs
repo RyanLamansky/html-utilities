@@ -29,6 +29,8 @@ public readonly struct ValidatedText
         }
     }
 
+    internal ValidatedText(ReadOnlyMemory<byte> value) => this.value = value;
+
     internal static void Validate(ReadOnlySpan<char> text, ref ArrayBuilder<byte> writer)
     {
         if (text.IsEmpty)
@@ -100,6 +102,11 @@ public readonly struct ValidatedText
             codePoint.WriteUtf8To(ref writer);
         }
     }
+
+    /// <summary>
+    /// When true, the content is empty.
+    /// </summary>
+    public bool IsEmpty => this.value.IsEmpty;
 
     /// <summary>
     /// Returns a string of this text as it would be written.

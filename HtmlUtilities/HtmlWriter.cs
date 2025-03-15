@@ -79,6 +79,12 @@ public sealed class HtmlWriter
     }
 
     /// <summary>
+    /// Writes a validated element with no additional attributes or children.
+    /// </summary>
+    /// <param name="element">The validated HTML element.</param>
+    public void WriteElement(StandardElement? element) => element?.Write(this);
+
+    /// <summary>
     /// Writes an element with no attributes or children.
     /// </summary>
     /// <param name="element">The HTML element.</param>

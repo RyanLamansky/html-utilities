@@ -38,9 +38,33 @@ public readonly struct ValidatedScript
     /// <summary>
     /// Creates a validated script element that uses inline content.
     /// </summary>
-    /// <returns>The validated script.</returns>
+    /// <returns>The script to validate.</returns>
     /// <exception cref="ArgumentException"><paramref name="script"/> contains a potentially invalid character sequence.</exception>
     public static ValidatedScript ForInlineSource(ReadOnlySpan<char> script, params ValidatedAttribute[]? attributes)
+    {
+        var writer = new ArrayBuilder<byte>(script.Length);
+        try
+        {
+            foreach (var attribute in attributes ?? [])
+                writer.Write(attribute.value);
+
+            writer.Write('>');
+
+            Validate(ref writer, script);
+            return new ValidatedScript(writer);
+        }
+        finally
+        {
+            writer.Release();
+        }
+    }
+
+    /// <summary>
+    /// Creates a validated script element that uses inline content.
+    /// </summary>
+    /// <returns>The UTF-8 script to validate.</returns>
+    /// <exception cref="ArgumentException"><paramref name="script"/> contains a potentially invalid character sequence.</exception>
+    public static ValidatedScript ForInlineSource(ReadOnlySpan<byte> script, params ValidatedAttribute[]? attributes)
     {
         var writer = new ArrayBuilder<byte>(script.Length);
         try
@@ -78,7 +102,20 @@ public readonly struct ValidatedScript
         // See https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements for the official rules.
         // It's technically possible for all risky scenarios to be corrected automatically, but that would require a fully-featured JavaScript parser.
 
-        var temp = new string(script); // Optimal validation would operate in a single pass without a temporary string.
+        var temp = new string(script); // TODO: Optimal validation would operate in a single pass without a temporary string.
+        if (temp.Contains("<!--") || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
+
+        foreach (var c in CodePoint.GetEnumerable(script))
+            c.WriteUtf8To(ref writer);
+    }
+
+    internal static void Validate(ref ArrayBuilder<byte> writer, ReadOnlySpan<byte> script)
+    {
+        // See https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements for the official rules.
+        // It's technically possible for all risky scenarios to be corrected automatically, but that would require a fully-featured JavaScript parser.
+
+        var temp = new string(Encoding.UTF8.GetString(script)); // TODO: Optimal validation would operate in a single pass without a temporary string.
         if (temp.Contains("<!--") || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
 

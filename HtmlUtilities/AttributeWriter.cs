@@ -24,6 +24,19 @@ public readonly struct AttributeWriter
         writer.Write(value.Value.value);
     }
 
+    internal void WriteRaw(ReadOnlySpan<byte> nameWithLeadingSpace, ReadOnlySpan<byte> valueWithLeadingEquals)
+    {
+        System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
+
+        if (valueWithLeadingEquals.IsEmpty)
+            return;
+
+        System.Diagnostics.Debug.Assert(valueWithLeadingEquals[0] == (byte)'=');
+
+        writer.Write(nameWithLeadingSpace);
+        writer.Write(valueWithLeadingEquals);
+    }
+
     /// <summary>
     /// Writes a validated attribute name with no value.
     /// </summary>
