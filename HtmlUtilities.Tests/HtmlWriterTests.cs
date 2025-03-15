@@ -213,7 +213,7 @@ public static class HtmlWriterTests
         {
             writer.WriteElement(new ValidatedElement("body"), children: writer =>
             {
-                writer.WriteElement(new ValidatedElement("div", [new("id", "react-app")]), attributes => attributes.Write("class", "root"));
+                writer.WriteElement(new ValidatedElement(new("div"), [new("id", "react-app")]), attributes => attributes.Write("class", "root"));
             });
         });
 

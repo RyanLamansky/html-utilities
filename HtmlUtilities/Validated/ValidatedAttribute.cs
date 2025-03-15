@@ -57,38 +57,25 @@ public readonly struct ValidatedAttribute
     }
 
     /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
+    /// </summary>
+    /// <param name="name">A UTF-8 name to be validated.</param>
+    /// <param name="value">A UTF-8 value to be validated.</param>
+    public ValidatedAttribute(ReadOnlySpan<byte> name, ReadOnlySpan<byte> value) : this(new ValidatedAttributeName(name), new ValidatedAttributeValue(value))
+    {
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
+    /// </summary>
+    /// <param name="name">A UTF-8 name to be validated.</param>
+    public ValidatedAttribute(ReadOnlySpan<byte> name) : this(new ValidatedAttributeName(name))
+    {
+    }
+
+    /// <summary>
     /// Returns a string of this attribute as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
-    /// </summary>
-    /// <param name="name">A name to be validated.</param>
-    public static implicit operator ValidatedAttribute(string name) => new(name);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and no value.
-    /// </summary>
-    /// <param name="name">A name to be validated.</param>
-    public static implicit operator ValidatedAttribute(ReadOnlySpan<char> name) => new(name);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
-    /// </summary>
-    /// <param name="nameAndValue">A name and value to be validated.</param>
-    public static implicit operator ValidatedAttribute(KeyValuePair<string, string?> nameAndValue) => new(nameAndValue.Key, nameAndValue.Value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
-    /// </summary>
-    /// <param name="nameAndValue">A name and value to be validated.</param>
-    public static implicit operator ValidatedAttribute((string Name, string? Value) nameAndValue) => new(nameAndValue.Name, nameAndValue.Value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttribute"/> from the provided unvalidated name and value.
-    /// </summary>
-    /// <param name="nameAndValue">A name and value to be validated.</param>
-    public static implicit operator ValidatedAttribute((string Name, int Value) nameAndValue) => new(new ValidatedAttributeName(nameAndValue.Name), new ValidatedAttributeValue(nameAndValue.Value));
 }

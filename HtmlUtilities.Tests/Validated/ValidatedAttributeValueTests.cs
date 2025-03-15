@@ -1,4 +1,6 @@
-﻿namespace HtmlUtilities.Validated;
+﻿using System.Text;
+
+namespace HtmlUtilities.Validated;
 
 public static class ValidatedAttributeValueTests
 {
@@ -22,6 +24,8 @@ public static class ValidatedAttributeValueTests
     public static void AttributeValueIsFormattedCorrectly(string? source, string expected)
     {
         Assert.Equal(expected, new ValidatedAttributeValue(source).ToString());
+        var utf8 = Encoding.UTF8.GetBytes(source ?? string.Empty);
+        Assert.Equal(expected, new ValidatedAttributeValue(utf8).ToString());
     }
 
     [Fact]

@@ -16,8 +16,8 @@ public static class HtmlDocumentExtensions
     /// <returns>A task that shows completion when the document is written.</returns>
     public static Task WriteToAsync(this IHtmlDocument document, HttpContext context)
     {
-        ArgumentNullException.ThrowIfNull(document, nameof(document));
-        ArgumentNullException.ThrowIfNull(context, nameof(context));
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(context);
 
         var request = context.Request;
         var response = context.Response;

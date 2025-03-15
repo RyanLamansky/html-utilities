@@ -67,7 +67,7 @@ public readonly struct ValidatedScript
     /// <exception cref="ArgumentException"><paramref name="importMap"/> contains a potentially invalid character sequence.</exception>
     public static ValidatedScript ForInlineSource(Standardized.ImportMap importMap, params ValidatedAttribute[]? attributes)
     {
-        ArgumentNullException.ThrowIfNull(importMap, nameof(importMap));
+        ArgumentNullException.ThrowIfNull(importMap);
 
         // Since importMap is guaranteed to be JSON-based, a fast path may be possible.
         return ForInlineSource(importMap.ToString(), attributes);

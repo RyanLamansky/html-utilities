@@ -208,7 +208,7 @@ public static class HtmlWriterAsyncTests
         {
             return writer.WriteElementAsync(new ValidatedElement("body"), children: (writer, cancellationToken) =>
             {
-                return writer.WriteElementAsync(new ValidatedElement("div", [("id", "react-app")]), attributes => attributes.Write("class", "root"), cancellationToken: cancellationToken);
+                return writer.WriteElementAsync(new ValidatedElement(new("div"), [new("id", "react-app")]), attributes => attributes.Write("class", "root"), cancellationToken: cancellationToken);
             }, cancellationToken: cancellationToken);
         });
 

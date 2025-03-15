@@ -21,8 +21,8 @@ public class Link : StandardElement
         {
             base.Write(attributes);
 
-            attributes.Write(" rel"u8, Rel);
-            attributes.Write(" href"u8, Href);
+            attributes.WriteRaw(" rel"u8, Rel);
+            attributes.WriteRaw(" href"u8, Href);
         });
     }
 }

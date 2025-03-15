@@ -30,6 +30,16 @@ public readonly struct ValidatedElement
     }
 
     /// <summary>
+    /// Creates a new <see cref="ValidatedElement"/> that contains no attributes.
+    /// </summary>
+    /// <param name="name">A UTF-8  element name to be validated and used.</param>
+    /// <exception cref="ArgumentException">The element name is not valid.</exception>
+    public ValidatedElement(ReadOnlySpan<byte> name)
+        : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)null)
+    {
+    }
+
+    /// <summary>
     /// Creates a new <see cref="ValidatedElement"/> including attributes.
     /// </summary>
     /// <param name="name">A validated element name.</param>
@@ -84,28 +94,6 @@ public readonly struct ValidatedElement
         buffer[^1] = (byte)'>';
 
         this.end = buffer;
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedElement"/> including attributes.
-    /// </summary>
-    /// <param name="name">An element name to be validated and used.</param>
-    /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElement(ReadOnlySpan<char> name, params ValidatedAttribute[]? attributes)
-        : this(new ValidatedElementName(name), (IEnumerable<ValidatedAttribute>?)attributes)
-    {
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedElement"/> including attributes.
-    /// </summary>
-    /// <param name="name">An element name to be validated and used.</param>
-    /// <param name="attributes">Optionally, validated attributes to include in the start tag.</param>
-    /// <exception cref="ArgumentException">The element name is not valid.</exception>
-    public ValidatedElement(ReadOnlySpan<char> name, IEnumerable<ValidatedAttribute>? attributes)
-        : this(new ValidatedElementName(name), attributes)
-    {
     }
 
     /// <summary>

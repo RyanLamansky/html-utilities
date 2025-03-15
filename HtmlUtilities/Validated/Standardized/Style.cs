@@ -22,7 +22,7 @@ public class Style : StandardElement
             Write(attributes);
             attributes.Write(writer.cspNonce);
 
-            attributes.Write(" media"u8, Media);
+            attributes.WriteRaw(" media"u8, Media);
         }, children => children.WriteText(Content));
     }
 }

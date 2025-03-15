@@ -14,19 +14,45 @@ public readonly struct ValidatedAttributeValue
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
     /// </summary>
     /// <param name="value">The value to prepare as an attribute.</param>
-    public ValidatedAttributeValue(ReadOnlySpan<char> value) => this.value = ToUtf8Array(value);
-
-    private static ReadOnlyMemory<byte> ToUtf8Array(ReadOnlySpan<char> value)
+    public ValidatedAttributeValue(ReadOnlySpan<char> value)
     {
         if (value.IsEmpty)
-            return Array.Empty<byte>(); // Empty attribute syntax implicitly has a value of an empty string.
+        {
+            this.value = Array.Empty<byte>(); // Empty attribute syntax implicitly has a value of an empty string.
+            return;
+        }
 
         var writer = new ArrayBuilder<byte>(value.Length);
 
         try
         {
             Validate(value, ref writer);
-            return writer;
+            this.value = writer;
+        }
+        finally
+        {
+            writer.Release();
+        }
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/>.
+    /// </summary>
+    /// <param name="value">The UTF-8 value to prepare as an attribute.</param>
+    public ValidatedAttributeValue(ReadOnlySpan<byte> value)
+    {
+        if (value.IsEmpty)
+        {
+            this.value = Array.Empty<byte>(); // Empty attribute syntax implicitly has a value of an empty string.
+            return;
+        }
+
+        var writer = new ArrayBuilder<byte>(value.Length);
+
+        try
+        {
+            Validate(value, ref writer);
+            this.value = writer;
         }
         finally
         {
@@ -286,21 +312,79 @@ public readonly struct ValidatedAttributeValue
         writer.Write('"');
     }
 
+    internal static void Validate(ReadOnlySpan<byte> value, ref ArrayBuilder<byte> writer)
+    {
+        if (value.IsEmpty)
+            return;
+
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        {
+            switch (codePoint.Value)
+            {
+                case '"':
+                case '\'':
+                case '=':
+                case '<':
+                case '>':
+                case '`':
+                    break;
+                default:
+                    if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiWhitespace) != 0)
+                        break;
+
+                    continue;
+            }
+
+            EmitQuoted(value, ref writer);
+            return;
+        }
+
+        EmitUnquoted(value, ref writer);
+    }
+
+    private static void EmitUnquoted(ReadOnlySpan<byte> value, ref ArrayBuilder<byte> writer)
+    {
+        writer.Write('=');
+
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        {
+            switch (codePoint.Value)
+            {
+                case '&':
+                    writer.Write("&amp;"u8);
+                    continue;
+            }
+
+            codePoint.WriteUtf8To(ref writer);
+        }
+    }
+
+    private static void EmitQuoted(ReadOnlySpan<byte> value, ref ArrayBuilder<byte> writer)
+    {
+        writer.Write('=');
+        writer.Write('"');
+
+        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        {
+            switch (codePoint.Value)
+            {
+                case '&':
+                    writer.Write("&amp;"u8);
+                    continue;
+                case '"':
+                    writer.Write("&quot;"u8);
+                    continue;
+            }
+
+            codePoint.WriteUtf8To(ref writer);
+        }
+
+        writer.Write('"');
+    }
+
     /// <summary>
     /// Returns a string of this attribute value as it would be written.
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/>.
-    /// </summary>
-    /// <param name="value">The value to prepare as an attribute.</param>
-    public static implicit operator ValidatedAttributeValue(ReadOnlySpan<char> value) => new(value);
-
-    /// <summary>
-    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="string"/>.
-    /// </summary>
-    /// <param name="value">The value to prepare as an attribute.</param>
-    public static implicit operator ValidatedAttributeValue(string? value) => new(value);
 }

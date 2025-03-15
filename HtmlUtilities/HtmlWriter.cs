@@ -352,6 +352,27 @@ public sealed class HtmlWriter
     }
 
     /// <summary>
+    /// Writes text.
+    /// </summary>
+    /// <param name="text">The UTF-8 text to write.</param>
+    public void WriteText(ReadOnlySpan<byte> text)
+    {
+        if (text.IsEmpty)
+            return;
+
+        var w = new ArrayBuilder<byte>(text.Length);
+        try
+        {
+            ValidatedText.Validate(text, ref w);
+            this.writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
     /// Writes a pre-validated script element.
     /// </summary>
     /// <param name="script">The script element to write.</param>

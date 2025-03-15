@@ -47,7 +47,7 @@ public interface IHtmlDocument
     /// <remarks>By default, directs the viewer to https://github.com/RyanLamansky/html-utilities to learn how to use this function.</remarks>
     Task WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(writer, nameof(writer));
+        ArgumentNullException.ThrowIfNull(writer);
 
         writer.WriteElement("p", null, children =>
         {

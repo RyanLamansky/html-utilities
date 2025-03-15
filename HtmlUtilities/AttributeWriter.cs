@@ -13,23 +13,7 @@ public readonly struct AttributeWriter
 
     internal AttributeWriter(IBufferWriter<byte> writer) => this.writer = writer;
 
-    /// <summary>
-    /// Writes an attribute without a value.
-    /// </summary>
-    /// <param name="nameWithLeadingSpace">The name of the attribute, including a leading space to separate it.</param>
-    internal void Write(ReadOnlySpan<byte> nameWithLeadingSpace)
-    {
-        System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
-
-        writer.Write(nameWithLeadingSpace);
-    }
-
-    /// <summary>
-    /// Writes an attribute if a value is provided.
-    /// </summary>
-    /// <param name="nameWithLeadingSpace">The name of the attribute, including a leading space to separate it.</param>
-    /// <param name="value">The value to write. If null, the attribute is completely omitted.</param>
-    internal void Write(ReadOnlySpan<byte> nameWithLeadingSpace, ValidatedAttributeValue? value)
+    internal void WriteRaw(ReadOnlySpan<byte> nameWithLeadingSpace, ValidatedAttributeValue? value)
     {
         System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
 
@@ -73,6 +57,25 @@ public readonly struct AttributeWriter
     }
 
     /// <summary>
+    /// Writes an attribute that consists only of a name, no value.
+    /// </summary>
+    /// <param name="name">The UTF-8 attribute name to write.</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public void Write(ReadOnlySpan<byte> name)
+    {
+        var w = new ArrayBuilder<byte>(name.Length);
+        try
+        {
+            ValidatedAttributeName.Validate(name, ref w);
+            writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
     /// Writes a validated attribute name and unvalidated value pair.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>
@@ -97,12 +100,58 @@ public readonly struct AttributeWriter
     }
 
     /// <summary>
+    /// Writes a validated attribute name and unvalidated value pair.
+    /// </summary>
+    /// <param name="name">The validated attribute name to write.</param>
+    /// <param name="value">The UTF-8 value to write.</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> was never initialized.</exception>
+    public void Write(ValidatedAttributeName name, ReadOnlySpan<byte> value)
+    {
+        Write(name);
+        var writer = this.writer;
+
+        var w = new ArrayBuilder<byte>(value.Length + 3);
+        try
+        {
+            ValidatedAttributeValue.Validate(value, ref w);
+
+            writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
     /// Writes an attribute name and value pair.
     /// </summary>
     /// <param name="name">The attribute name to write.</param>
     /// <param name="value">The value to write.</param>
     /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
     public void Write(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
+    {
+        var w = new ArrayBuilder<byte>(name.Length + value.Length + 3);
+        try
+        {
+            ValidatedAttributeName.Validate(name, ref w);
+            ValidatedAttributeValue.Validate(value, ref w);
+
+            writer.Write(w.WrittenSpan);
+        }
+        finally
+        {
+            w.Release();
+        }
+    }
+
+    /// <summary>
+    /// Writes an attribute name and value pair.
+    /// </summary>
+    /// <param name="name">The UTF-8 attribute name to write.</param>
+    /// <param name="value">The UTF-8 value to write.</param>
+    /// <exception cref="ArgumentException"><paramref name="name"/> is zero-length or contains invalid characters.</exception>
+    public void Write(ReadOnlySpan<byte> name, ReadOnlySpan<byte> value)
     {
         var w = new ArrayBuilder<byte>(name.Length + value.Length + 3);
         try
@@ -237,7 +286,7 @@ public readonly struct AttributeWriter
     public void Write(ValidatedAttributeName name, ulong? value)
     {
         if (value is null)
-            Write(name, []);
+            Write(name);
         else
             Write(name, value.GetValueOrDefault());
     }
@@ -251,7 +300,7 @@ public readonly struct AttributeWriter
     public void Write(ReadOnlySpan<char> name, ulong? value)
     {
         if (value is null)
-            Write(name, []);
+            Write(name);
         else
             Write(name, value.GetValueOrDefault());
     }

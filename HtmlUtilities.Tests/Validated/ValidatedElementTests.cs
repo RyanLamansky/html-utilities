@@ -7,8 +7,8 @@ public static class ValidatedElementTests
     public static void ValidatedElementDiscardsUnconstructedAttributes()
     {
         var array = new ValidatedAttribute[2];
-        array[0] = ("lang", "en");
-        Assert.Equal("<html lang=en>", new ValidatedElement("html", array).ToString());
+        array[0] = new("lang", "en");
+        Assert.Equal("<html lang=en>", new ValidatedElement(new("html"), array).ToString());
     }
 
     [Fact]
@@ -20,6 +20,6 @@ public static class ValidatedElementTests
     [Fact]
     public static void ValidatedElementWithAttributesIsCorrect()
     {
-        Assert.Equal("<html lang=en-us>", new ValidatedElement("html", [("lang", "en-us")]).ToString());
+        Assert.Equal("<html lang=en-us>", new ValidatedElement(new("html"), [new("lang", "en-us")]).ToString());
     }
 }
