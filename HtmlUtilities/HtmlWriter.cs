@@ -29,6 +29,14 @@ public sealed class HtmlWriter
     }
 
     /// <summary>
+    /// Pushes buffered written bytes to the client.
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None" />.</param>
+    /// <returns>A task that represents and wraps the asynchronous flush operation.</returns>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was triggered.</exception>
+    public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default) => writer.FlushAsync(cancellationToken);
+
+    /// <summary>
     /// Writes an HTML document using the provided buffer writer and callbacks.
     /// </summary>
     /// <param name="writer">Receives the written bytes.</param>

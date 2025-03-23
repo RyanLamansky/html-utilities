@@ -39,6 +39,17 @@ public class Script : StandardElement
         set => SetAttribute(JavaScriptMime.Contains(value.ToString()) ? default : value);
     }
 
+    /// <summary>
+    /// For classic scripts, if the async attribute is present, then the classic script will be fetched in parallel to parsing and evaluated as soon as it is available.
+    /// For module scripts, if the async attribute is present then the scripts and all their dependencies will be fetched in parallel to parsing and evaluated as soon as they are available.
+    /// </summary>
+    public bool Async { get; set; }
+
+    /// <summary>
+    /// Indicates to a browser that the script is meant to be executed after the document has been parsed, but before firing the DOMContentLoaded event.
+    /// </summary>
+    public bool Defer { get; set; }
+
     private ValidatedText content;
 
     /// <summary>
@@ -65,6 +76,9 @@ public class Script : StandardElement
     internal sealed override void Write(HtmlWriter writer) => writer.WriteElementRaw("<script>"u8, attributes =>
     {
         attributes.WriteRaw(" type"u8, this.Type);
+        attributes.WriteRaw(" async"u8, this.Async);
+        attributes.WriteRaw(" defer"u8, this.Defer);
+
         base.Write(attributes);
         attributes.Write(writer.cspNonce);
     }, writer => writer.WriteText(this.content));

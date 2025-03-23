@@ -44,25 +44,5 @@ public interface IHtmlDocument
     /// <param name="writer">Receives the write commands.</param>
     /// <param name="cancellationToken">Indicates that the document is no longer needed so processing can be cancelled.</param>
     /// <returns>A task that, upon completion, indicates document writing is complete.</returns>
-    /// <remarks>By default, directs the viewer to https://github.com/RyanLamansky/html-utilities to learn how to use this function.</remarks>
-    Task WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-
-        writer.WriteElement("p", null, children =>
-        {
-            writer.WriteText("Visit ");
-            writer.WriteElement("a", writer =>
-            {
-                writer.Write("href", "https://github.com/RyanLamansky/html-utilities");
-            },
-            writer =>
-            {
-                writer.WriteText("https://github.com/RyanLamansky/html-utilities");
-            });
-            writer.WriteText(" to learn how to customize an HtmlDocument instance.");
-        });
-
-        return Task.CompletedTask;
-    }
+    ValueTask WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken = default);
 }

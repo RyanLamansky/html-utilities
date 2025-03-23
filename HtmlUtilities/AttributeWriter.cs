@@ -24,6 +24,16 @@ public readonly struct AttributeWriter : IEquatable<AttributeWriter>
         writer.Write(value.Value.value);
     }
 
+    internal void WriteRaw(ReadOnlySpan<byte> nameWithLeadingSpace, bool write)
+    {
+        System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');
+
+        if (!write)
+            return;
+
+        writer.Write(nameWithLeadingSpace);
+    }
+
     internal void WriteRaw(ReadOnlySpan<byte> nameWithLeadingSpace, ReadOnlySpan<byte> valueWithLeadingEquals)
     {
         System.Diagnostics.Debug.Assert(nameWithLeadingSpace.Length >= 2 && nameWithLeadingSpace[0] == ' ');

@@ -13,7 +13,7 @@ public static class HtmlDocumentExtensions
     /// <param name="document">The document to write.</param>
     /// <param name="context">Receives the written document.</param>
     /// <returns>A task that shows completion when the document is written.</returns>
-    public static Task WriteToAsync(this IHtmlDocument document, HttpContext context)
+    public static ValueTask WriteToAsync(this IHtmlDocument document, HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(context);
