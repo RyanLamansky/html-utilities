@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace HtmlUtilities.Validated;
@@ -64,11 +63,10 @@ public abstract class StandardElement
     /// <inheritdoc/>
     public override string ToString()
     {
-        var buffer = new ArrayBufferWriter<byte>();
-        var writer = new HtmlWriter(buffer);
+        var writer = new MemoryPipeWriter();
 
-        Write(writer);
+        Write(new HtmlWriter(writer));
 
-        return Encoding.UTF8.GetString(buffer.WrittenSpan);
+        return Encoding.UTF8.GetString(writer.WrittenSpan);
     }
 }

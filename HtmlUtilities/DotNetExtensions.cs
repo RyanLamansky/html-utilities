@@ -8,8 +8,15 @@ internal static class DotNetExtensions
     public static string GetString(this System.Text.Encoding encoding, ReadOnlyMemory<byte> bytes)
         => encoding.GetString(bytes.Span);
 
-    public static void Write<T>(this System.Buffers.IBufferWriter<T> writer, ReadOnlyMemory<T> value)
-        => System.Buffers.BuffersExtensions.Write(writer, value.Span);
+    public static void Write(this System.IO.Pipelines.PipeWriter writer, ReadOnlyMemory<byte> value)
+        => Write(writer, value.Span);
+
+    public static void Write(this System.IO.Pipelines.PipeWriter writer, ReadOnlySpan<byte> bytes)
+    {
+        var span = writer.GetSpan(bytes.Length);
+        bytes.CopyTo(span);
+        writer.Advance(bytes.Length);
+    }
 
     public static bool ContentsEqual<T>(this ReadOnlyMemory<T> left, ReadOnlyMemory<T> right)
         where T : IEquatable<T>

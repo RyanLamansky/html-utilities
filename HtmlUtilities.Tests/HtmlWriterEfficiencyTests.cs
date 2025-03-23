@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.IO.Pipelines;
 
 namespace HtmlUtilities;
 
@@ -10,19 +11,38 @@ using Validated;
 public static class HtmlWriterEfficiencyTests
 {
     /// <summary>
-    /// Tracking calls to <see cref="IBufferWriter{T}.Advance(int)"/> is the most precise way to measure efficiency.
+    /// Tracking calls to <see cref="PipeWriter.Advance(int)"/> is the most precise way to measure efficiency.
     /// There is overhead with each call, so the fewer the better.
     /// Tests built around the count of advances may see a reduction over time from optimization, but never regression.
     /// </summary>
-    private sealed class AdvanceCounter : List<int>, IBufferWriter<byte>
-    {
-        private readonly byte[] buffer = new byte[256]; // This should be big enough for the test cases to keep things simple.
+    private sealed class AdvanceCounter : PipeWriter
+    {        
+        private readonly ArrayBufferWriter<byte> writer = new();
 
-        void IBufferWriter<byte>.Advance(int count) => Add(count);
+        public int Count { get; private set; }
 
-        Memory<byte> IBufferWriter<byte>.GetMemory(int sizeHint) => buffer;
+        public override void Advance(int bytes)
+        {
+            writer.Advance(bytes);
+            Count++;
+        }
 
-        Span<byte> IBufferWriter<byte>.GetSpan(int sizeHint) => buffer;
+        public override void CancelPendingFlush()
+        {
+        }
+
+        public override void Complete(Exception? exception = null)
+        {
+        }
+
+        public override ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default)
+            => new(new FlushResult(false, true));
+
+        public override Memory<byte> GetMemory(int sizeHint = 0) => writer.GetMemory(sizeHint);
+
+        public override Span<byte> GetSpan(int sizeHint = 0) => writer.GetSpan(sizeHint);
+
+        public ReadOnlySpan<byte> WrittenSpan => writer.WrittenSpan;
     }
 
     [Fact]

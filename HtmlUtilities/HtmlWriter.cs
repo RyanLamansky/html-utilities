@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+﻿using System.IO.Pipelines;
 
 namespace HtmlUtilities;
 
@@ -14,15 +14,15 @@ public sealed class HtmlWriter
         "<!DOCTYPE html><html>"u8.ToArray(),
         "</html>"u8.ToArray());
 
-    private readonly IBufferWriter<byte> writer;
+    private readonly PipeWriter writer;
     internal readonly ValidatedAttribute cspNonce;
 
-    internal HtmlWriter(IBufferWriter<byte> writer)
+    internal HtmlWriter(PipeWriter writer)
         : this(writer, new ValidatedAttribute())
     {
     }
 
-    internal HtmlWriter(IBufferWriter<byte> writer, ValidatedAttribute cspNonce)
+    internal HtmlWriter(PipeWriter writer, ValidatedAttribute cspNonce)
     {
         ArgumentNullException.ThrowIfNull(this.writer = writer, nameof(writer));
         this.cspNonce = cspNonce;
@@ -35,7 +35,7 @@ public sealed class HtmlWriter
     /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> cannot be null.</exception>
-    public static void WriteDocument(IBufferWriter<byte> writer, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
+    public static void WriteDocument(PipeWriter writer, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         new HtmlWriter(writer).WriteElement(html, attributes, children);
     }
@@ -93,14 +93,14 @@ public sealed class HtmlWriter
         }
     }
 
-    private static void WriteGreaterThan(IBufferWriter<byte> writer)
+    private static void WriteGreaterThan(PipeWriter writer)
     {
         var chars = writer.GetSpan();
         chars[0] = (byte)'>';
         writer.Advance(1);
     }
 
-    private static void WriteLessThan(IBufferWriter<byte> writer)
+    private static void WriteLessThan(PipeWriter writer)
     {
         var chars = writer.GetSpan();
         chars[0] = (byte)'<';

@@ -1,6 +1,7 @@
-﻿using System.Buffers;
+﻿using System.IO.Pipelines;
 
 namespace HtmlUtilities;
+
 using Validated;
 
 /// <summary>
@@ -8,9 +9,9 @@ using Validated;
 /// </summary>
 public readonly struct AttributeWriter : IEquatable<AttributeWriter>
 {
-    private readonly IBufferWriter<byte> writer;
+    private readonly PipeWriter writer;
 
-    internal AttributeWriter(IBufferWriter<byte> writer) => this.writer = writer;
+    internal AttributeWriter(PipeWriter writer) => this.writer = writer;
 
     internal void WriteRaw(ReadOnlySpan<byte> nameWithLeadingSpace, ValidatedAttributeValue? value)
     {
