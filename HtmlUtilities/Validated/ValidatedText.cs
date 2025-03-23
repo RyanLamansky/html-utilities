@@ -5,7 +5,7 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// A pre-validated and formatted block of text ready to be written.
 /// </summary>
-public readonly struct ValidatedText
+public readonly struct ValidatedText : IEquatable<ValidatedText>
 {
     internal readonly ReadOnlyMemory<byte> value;
 
@@ -114,10 +114,28 @@ public readonly struct ValidatedText
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
 
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedText value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedText other) => this.value.ContentsEqual(other.value);
+
     /// <summary>
-    /// Creates a new <see cref="ValidatedText"/> with the provided content.
+    /// Determines whether two instances have the same content.
     /// </summary>
-    /// <param name="text">The text to use.</param>
-    /// <remarks>Characters are escaped if needed. Invalid characters are skipped.</remarks>
-    public static implicit operator ValidatedText(ReadOnlySpan<char> text) => new(text);
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedText left, ValidatedText right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedText left, ValidatedText right) => !(left == right);
 }

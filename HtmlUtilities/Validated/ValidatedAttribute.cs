@@ -6,7 +6,8 @@ namespace HtmlUtilities.Validated;
 /// A combination of <see cref="ValidatedAttributeName"/> and <see cref="ValidatedAttributeValue"/>.
 /// </summary>
 #pragma warning disable CA1711 // "Attribute" has a well known meaning in the context of HTML.
-public readonly struct ValidatedAttribute
+public readonly struct ValidatedAttribute : IEquatable<ValidatedAttribute>
+
 #pragma warning restore
 {
     internal readonly ReadOnlyMemory<byte> value;
@@ -78,4 +79,29 @@ public readonly struct ValidatedAttribute
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedAttribute value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedAttribute other) => this.value.ContentsEqual(other.value);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedAttribute left, ValidatedAttribute right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedAttribute left, ValidatedAttribute right) => !(left == right);
 }

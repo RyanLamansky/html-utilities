@@ -6,7 +6,8 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <DebugType>embedded</DebugType>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AnalysisMode>Recommended</AnalysisMode>
+    <AnalysisMode>All</AnalysisMode>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

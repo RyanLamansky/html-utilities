@@ -6,7 +6,7 @@ namespace HtmlUtilities.Validated;
 /// A pre-validated and formatted attribute value ready to be written.
 /// </summary>
 /// <remarks>The rules described by https://html.spec.whatwg.org/#attributes-2 are closely followed.</remarks>
-public readonly struct ValidatedAttributeValue
+public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeValue>
 {
     internal readonly ReadOnlyMemory<byte> value;
 
@@ -387,4 +387,29 @@ public readonly struct ValidatedAttributeValue
     /// </summary>
     /// <returns>A string representation of this value.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedAttributeValue value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedAttributeValue other) => this.value.ContentsEqual(other.value);
+
+    /// <summary>
+    /// Determines whether two instances have the same content.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedAttributeValue left, ValidatedAttributeValue right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedAttributeValue left, ValidatedAttributeValue right) => !(left == right);
 }

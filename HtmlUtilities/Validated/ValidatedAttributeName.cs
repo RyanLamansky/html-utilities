@@ -5,7 +5,7 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// Enables pre-validation of HTML attribute names by storing only valid names.
 /// </summary>
-public readonly struct ValidatedAttributeName
+public readonly struct ValidatedAttributeName : IEquatable<ValidatedAttributeName>
 {
     internal readonly ReadOnlyMemory<byte> value;
 
@@ -116,4 +116,29 @@ public readonly struct ValidatedAttributeName
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedAttributeName value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedAttributeName other) => this.value.ContentsEqual(other.value);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedAttributeName left, ValidatedAttributeName right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedAttributeName left, ValidatedAttributeName right) => !(left == right);
 }

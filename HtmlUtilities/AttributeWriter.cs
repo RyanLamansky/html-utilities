@@ -1,13 +1,12 @@
 ﻿using System.Buffers;
 
 namespace HtmlUtilities;
-
 using Validated;
 
 /// <summary>
 /// Writes attributes for an HTML element.
 /// </summary>
-public readonly struct AttributeWriter
+public readonly struct AttributeWriter : IEquatable<AttributeWriter>
 {
     private readonly IBufferWriter<byte> writer;
 
@@ -341,4 +340,29 @@ public readonly struct AttributeWriter
         if (value)
             Write(name);
     }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is AttributeWriter value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(AttributeWriter other) => this.writer == other.writer;
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.writer.GetHashCode();
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(AttributeWriter left, AttributeWriter right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(AttributeWriter left, AttributeWriter right) => !(left == right);
 }

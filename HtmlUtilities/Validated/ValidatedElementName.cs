@@ -5,7 +5,7 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// Enables pre-validation of HTML element names by storing only valid names.
 /// </summary>
-public readonly struct ValidatedElementName
+public readonly struct ValidatedElementName : IEquatable<ValidatedElementName>
 {
     internal readonly ReadOnlyMemory<byte> value;
 
@@ -126,4 +126,29 @@ public readonly struct ValidatedElementName
     /// </summary>
     /// <returns>The string representation of the validated name.</returns>
     public override string ToString() => Encoding.UTF8.GetString(value);
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedElementName value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedElementName other) => this.value.ContentsEqual(other.value);
+
+    /// <summary>
+    /// Determines whether two instances have the same content.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedElementName left, ValidatedElementName right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedElementName left, ValidatedElementName right) => !(left == right);
 }

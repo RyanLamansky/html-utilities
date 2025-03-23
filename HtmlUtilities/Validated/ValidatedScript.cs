@@ -5,7 +5,7 @@ namespace HtmlUtilities.Validated;
 /// <summary>
 /// Enables pre-validation of script elements.
 /// </summary>
-public readonly struct ValidatedScript
+public readonly struct ValidatedScript : IEquatable<ValidatedScript>
 {
     internal readonly ReadOnlyMemory<byte> value;
 
@@ -106,7 +106,7 @@ public readonly struct ValidatedScript
         // It's technically possible for all risky scenarios to be corrected automatically, but that would require a fully-featured JavaScript parser.
 
         var temp = new string(script); // TODO: Optimal validation would operate in a single pass without a temporary string.
-        if (temp.Contains("<!--") || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
+        if (temp.Contains("<!--", StringComparison.OrdinalIgnoreCase) || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
 
         foreach (var c in CodePoint.GetEnumerable(script))
@@ -119,7 +119,7 @@ public readonly struct ValidatedScript
         // It's technically possible for all risky scenarios to be corrected automatically, but that would require a fully-featured JavaScript parser.
 
         var temp = new string(Encoding.UTF8.GetString(script)); // TODO: Optimal validation would operate in a single pass without a temporary string.
-        if (temp.Contains("<!--") || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
+        if (temp.Contains("<!--", StringComparison.OrdinalIgnoreCase) || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
 
         foreach (var c in CodePoint.GetEnumerable(script))
@@ -131,4 +131,29 @@ public readonly struct ValidatedScript
     /// </summary>
     /// <returns>A string representation of the script element</returns>
     public override string ToString() => $"<script{Encoding.UTF8.GetString(value)}</script>";
+
+    /// <inheritdoc/>
+    public override int GetHashCode() => this.value.GetContentHashCode();
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is ValidatedScript value && Equals(value);
+
+    /// <inheritdoc/>
+    public bool Equals(ValidatedScript other) => this.value.ContentsEqual(other.value);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>True if their contents match, otherwise false.</returns>
+    public static bool operator ==(ValidatedScript left, ValidatedScript right) => left.Equals(right);
+
+    /// <summary>
+    /// Determines whether two instances have the same contents.
+    /// </summary>
+    /// <param name="left">The left side of the comparison.</param>
+    /// <param name="right">The right side of the comparison.</param>
+    /// <returns>False if their contents match, otherwise true.</returns>
+    public static bool operator !=(ValidatedScript left, ValidatedScript right) => !(left == right);
 }
