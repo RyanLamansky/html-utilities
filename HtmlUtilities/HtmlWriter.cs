@@ -1,9 +1,9 @@
-﻿using System.IO.Pipelines;
+﻿using HtmlUtilities.Validated;
+using Microsoft.AspNetCore.Http;
+using System.Diagnostics;
+using System.IO.Pipelines;
 
 namespace HtmlUtilities;
-
-using System.Diagnostics;
-using Validated;
 
 /// <summary>
 /// A high-performance writer for HTML content.
@@ -11,9 +11,10 @@ using Validated;
 /// <remarks>UTF-8 is always used.</remarks>
 public sealed class HtmlWriter
 {
-    private static readonly ValidatedElement html = new(
-        "<!DOCTYPE html><html>"u8.ToArray(),
-        "</html>"u8.ToArray());
+    private static readonly ValidatedElement html = new("<!DOCTYPE html><html>"u8, "</html>"u8);
+    private static readonly ValidatedElement head = new("<head>"u8, "</head>"u8);
+    private static readonly ValidatedElement body = new("<body>"u8, "</body>"u8);
+    private static readonly ValidatedElement metaCharsetUtf8 = new("<meta charset=utf-9>"u8, ""u8);
 
     private readonly PipeWriter writer;
     internal readonly ValidatedAttribute cspNonce;
@@ -32,13 +33,13 @@ public sealed class HtmlWriter
     /// <summary>
     /// Pushes buffered written bytes to the client.
     /// </summary>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None" />.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
     /// <returns>A task that represents and wraps the asynchronous flush operation.</returns>
     /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was triggered.</exception>
-    public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken = default) => writer.FlushAsync(cancellationToken);
+    public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken) => writer.FlushAsync(cancellationToken);
 
     /// <summary>
-    /// Writes an HTML document using the provided buffer writer and callbacks.
+    /// Writes an HTML document using the provided writer and callbacks.
     /// </summary>
     /// <param name="writer">Receives the written bytes.</param>
     /// <param name="attributes">If provided, writes attributes to the root HTML element.</param>
@@ -47,6 +48,75 @@ public sealed class HtmlWriter
     public static void WriteDocument(PipeWriter writer, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
         new HtmlWriter(writer).WriteElement(html, attributes, children);
+    }
+
+    /// <summary>
+    /// Writes an HTML document using the provided context.
+    /// </summary>
+    /// <param name="context">Receives the written bytes.</param>
+    /// <param name="document">The document to write.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> and <paramref name="document"/> cannot be null.</exception>
+    public static void WriteDocument(HttpContext context, IHtmlDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
+
+        var request = context.Request;
+        var response = context.Response;
+        response.ContentType = "text/html; charset=utf-8";
+        Span<char> cspNonceUtf16 = stackalloc char[32];
+        System.Security.Cryptography.RandomNumberGenerator.GetHexString(cspNonceUtf16, true);
+        response.Headers.ContentSecurityPolicy = document.GetContentSecurityPolicy(request, cspNonceUtf16);
+
+        var writer = new HtmlWriter(response.BodyWriter, new("nonce", cspNonceUtf16));
+        writer.WriteElement(html, document.WriteHtmlAttributes, children =>
+        {
+            writer.WriteElement(head, document.WriteHeadAttributes, children =>
+            {
+                children.WriteElement(metaCharsetUtf8);
+                document.WriteHeadChildren(writer);
+            });
+
+            writer.WriteElement(body, document.WriteBodyAttributes, document.WriteBodyChildren);
+        });
+    }
+
+    /// <summary>
+    /// Writes an HTML document using the provided context asynchronously.
+    /// </summary>
+    /// <param name="context">Receives the written bytes.</param>
+    /// <param name="document">The document to write.</param>
+    /// <param name="cancellationToken">When triggered, the operation is cancelled.</param>
+    /// <returns>A task that represents and wraps the asynchronous document writing operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> and <paramref name="document"/> cannot be null.</exception>
+    public static async ValueTask WriteDocumentAsync(HttpContext context, IHtmlDocument document, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
+
+        var request = context.Request;
+        var response = context.Response;
+        response.ContentType = "text/html; charset=utf-8";
+        Span<char> cspNonceUtf16 = stackalloc char[32];
+        System.Security.Cryptography.RandomNumberGenerator.GetHexString(cspNonceUtf16, true);
+        response.Headers.ContentSecurityPolicy = document.GetContentSecurityPolicy(request, cspNonceUtf16);
+
+        var writer = new HtmlWriter(response.BodyWriter, new("nonce", cspNonceUtf16));
+        await writer.WriteElementAsync(html, document.WriteHtmlAttributesAsync, async (children, cancellationToken) =>
+        {
+            await writer.WriteElementAsync(head, document.WriteHeadAttributesAsync, async (children, cancellationToken) =>
+            {
+#pragma warning disable IDE0079 // Remove unnecessary suppression - IDE conflicts with code analysis.
+#pragma warning disable CA1849 // Call async methods when in an async method - Not necessary for this code path.
+                children.WriteElement(metaCharsetUtf8);
+#pragma warning restore
+                await document.WriteHeadChildrenAsync(writer, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
+
+            await writer
+                .WriteElementAsync(body, document.WriteBodyAttributesAsync, document.WriteBodyChildrenAsync, cancellationToken)
+                .ConfigureAwait(false);
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -191,6 +261,44 @@ public sealed class HtmlWriter
 
         if (children is not null)
             children(this);
+
+        writer.Write(end);
+    }
+
+    /// <summary>
+    /// Writes a validated element with optional attributes and child content.
+    /// </summary>
+    /// <param name="element">The validated HTML element.</param>
+    /// <param name="attributes">If provided, writes attributes to the element. Attributes baked into <paramref name="element"/> are always included.</param>
+    /// <param name="children">If provided, writes child elements.</param>
+    /// <param name="cancellationToken">When triggered, the operation is cancelled.</param>
+    /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
+    public async ValueTask WriteElementAsync(
+        ValidatedElement element,
+        Func<AttributeWriter, CancellationToken, ValueTask>? attributes = null,
+        Func<HtmlWriter, CancellationToken, ValueTask>? children = null,
+        CancellationToken cancellationToken = default)
+    {
+        var writer = this.writer;
+        var start = element.start;
+        var end = element.end;
+
+        if (start.IsEmpty)
+            throw new ArgumentException("element was never initialized.", nameof(element));
+
+        if (attributes is null)
+            writer.Write(start);
+        else
+        {
+            writer.Write(start[..^1]);
+
+            await attributes(new(this.writer), cancellationToken).ConfigureAwait(false);
+
+            WriteGreaterThan(writer);
+        }
+
+        if (children is not null)
+            await children(this, cancellationToken).ConfigureAwait(false);
 
         writer.Write(end);
     }

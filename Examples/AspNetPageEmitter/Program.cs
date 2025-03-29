@@ -2,41 +2,77 @@ using HtmlUtilities;
 using HtmlUtilities.Validated;
 using HtmlUtilities.Validated.Standardized;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
-
-var app = builder.Build();
-
-app.Use((context, next) =>
+static Task<WebApplication> Startup(string[] args)
 {
-    context.Response.GetTypedHeaders().CacheControl = new()
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
+    var app = builder.Build();
+
+    app.Use((context, next) =>
     {
-        Private = true,
-        NoCache = true,
-    };
-
-    return next();
-});
-app.MapFallback(new TestDocument().WriteToAsync);
-
-await app.RunAsync().ConfigureAwait(false);
-
-class TestDocument : IHtmlDocument
-{
-    ValidatedAttributeValue IHtmlDocument.Language => new("en-us");
-    ValidatedText IHtmlDocument.Title => new("Hello World!");
-    ValidatedAttributeValue IHtmlDocument.Description => new("Test page for HTML Utilities");
-    IReadOnlyCollection<Style> IHtmlDocument.Styles { get; } = [new() { Content = new(string.Join('\n', File.ReadAllLines("styles.css"))) }]; 
-
-    ValueTask IHtmlDocument.WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken)
-    {
-        writer.WriteElement("p", null, children => children.WriteText("Test bytes."));
-        writer.WriteElement("p", null, children =>
+        context.Response.GetTypedHeaders().CacheControl = new()
         {
-            children.WriteElement("a", attributes => attributes.Write("href", "/"), children => children.WriteText("Test link."));
+            Private = true,
+            NoCache = true,
+        };
+
+        context.Response.Headers.Append("Cross-Origin-Opener-Policy", "noopener-allow-popups");
+
+        return next();
+    });
+
+    app.MapFallback(async context =>
+    {
+        // Since there's no async inside the home page in this example, we could use HtmlWriter.WriteDocument instead.
+        await HtmlWriter.WriteDocumentAsync(context, new HomePage(), context.RequestAborted).ConfigureAwait(false);
+    });
+
+    return Task.FromResult(app); // This example doesn't have any async startup functions, but is ready to get them.
+}
+
+// This is the most direct way to run the web application.
+// Standard "Main", no compiler-generated async state management, no extra stack frames.
+Startup(args).GetAwaiter().GetResult().RunAsync().GetAwaiter().GetResult();
+
+internal class HomePage : IHtmlDocument
+{
+    public void WriteHtmlAttributes(AttributeWriter writer)
+    {
+        writer.Write("lang", "en-US");
+    }
+
+    public void WriteHeadChildren(HtmlWriter children)
+    {
+        children.WriteElement("title", null, children => children.WriteText("Hello World!"));
+        children.WriteElement("meta", attributes =>
+        {
+            attributes.Write("name", "viewport");
+            attributes.Write("content", "width=device-width, initial-scale=1");
         });
-        writer.WriteScript(ValidatedScript.ForInlineSource("console.log('test')"));
-        return ValueTask.CompletedTask;
+        children.WriteElement("meta", attributes =>
+        {
+            attributes.Write("name", "description");
+            attributes.Write("content", "Test page for HTML Utilities");
+        });
+        children.WriteElement(new Style
+        {
+            Content = new(string.Join('\n', File.ReadAllLines("styles.css"))),
+        });
+    }
+
+    public void WriteBodyChildren(HtmlWriter children)
+    {
+        children.WriteElement("p", null, children => children.WriteText("Test bytes."));
+        children.WriteElement("p", null, writer =>
+        {
+            writer.WriteElement(
+                "a",
+                attributes => attributes.Write("href", "/"),
+                children => children.WriteText("Test link.")
+                );
+        });
+        children.WriteScript(ValidatedScript.ForInlineSource("console.log('test')"));
     }
 }

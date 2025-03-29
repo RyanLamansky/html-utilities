@@ -48,6 +48,14 @@ public readonly struct AttributeWriter : IEquatable<AttributeWriter>
     }
 
     /// <summary>
+    /// Pushes buffered written bytes to the client.
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents and wraps the asynchronous flush operation.</returns>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was triggered.</exception>
+    public ValueTask<FlushResult> FlushAsync(CancellationToken cancellationToken) => writer.FlushAsync(cancellationToken);
+
+    /// <summary>
     /// Writes a validated attribute name with no value.
     /// </summary>
     /// <param name="name">The validated attribute name to write.</param>

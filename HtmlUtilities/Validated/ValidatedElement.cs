@@ -40,10 +40,10 @@ public readonly struct ValidatedElement : IEquatable<ValidatedElement>
     }
 
     // Internal fast path for known-safe tag pairs.
-    internal ValidatedElement(ReadOnlyMemory<byte> start, ReadOnlyMemory<byte> end)
+    internal ValidatedElement(ReadOnlySpan<byte> start, ReadOnlySpan<byte> end)
     {
-        this.start = start;
-        this.end = end;
+        this.start = start.ToArray();
+        this.end = end.ToArray();
     }
 
     /// <summary>

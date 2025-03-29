@@ -1,48 +1,87 @@
-﻿using HtmlUtilities.Validated;
-using HtmlUtilities.Validated.Standardized;
+﻿namespace HtmlUtilities;
 
-namespace HtmlUtilities;
+#pragma warning disable IDE0079 // Remove unnecessary suppression - IDE disagrees with the compiler about CA1033.
+#pragma warning disable CA1033 // Interface methods should be callable by child types
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 
 /// <summary>
-/// Automatically handles many of the standard features of an HTML document.
+/// Provides values for specific areas of an HTML document using synchronous APIs.
+/// This interface extends <see cref="IHtmlDocumentAsync"/> by forwarding asynchronous calls to the synchronous versions.
 /// </summary>
-public interface IHtmlDocument
+public interface IHtmlDocument : IHtmlDocumentAsync
 {
     /// <summary>
-    /// The IETF language tag of the document's language.
-    /// By default, this attribute is not emitted.
+    /// Writes attributes to the outer HTML element.
+    /// Not used if <see cref="IHtmlDocumentAsync.WriteHtmlAttributesAsync(AttributeWriter, CancellationToken)"/> is implemented.
     /// </summary>
-    ValidatedAttributeValue Language => new();
+    /// <param name="attributes">Receives the attributes.</param>
+    void WriteHtmlAttributes(AttributeWriter attributes)
+    {
+    }
+
+    ValueTask IHtmlDocumentAsync.WriteHtmlAttributesAsync(AttributeWriter attributes, CancellationToken cancellationToken)
+    {
+        WriteHtmlAttributes(attributes);
+        return ValueTask.CompletedTask;
+    }
 
     /// <summary>
-    /// The document's title.
-    /// By default, this attribute is not emitted.
+    /// Writes attributes to the head element.
+    /// Not used if <see cref="IHtmlDocumentAsync.WriteHeadAttributesAsync(AttributeWriter, CancellationToken)"/> is implemented.
     /// </summary>
-    ValidatedText Title => new();
+    /// <param name="attributes">Receives the attributes.</param>
+    void WriteHeadAttributes(AttributeWriter attributes)
+    {
+    }
+
+    ValueTask IHtmlDocumentAsync.WriteHeadAttributesAsync(AttributeWriter attributes, CancellationToken cancellationToken)
+    {
+        WriteHeadAttributes(attributes);
+        return ValueTask.CompletedTask;
+    }
 
     /// <summary>
-    /// A description of the contents of the document.
-    /// By default, this is not emitted.
+    /// Writes children do the head element.
+    /// Not used if <see cref="IHtmlDocumentAsync.WriteHeadChildrenAsync(HtmlWriter, CancellationToken)"/> is implemented.
     /// </summary>
-    ValidatedAttributeValue Description => new();
+    /// <param name="children">Receives the child elements.</param>
+    void WriteHeadChildren(HtmlWriter children)
+    {
+    }
+
+    ValueTask IHtmlDocumentAsync.WriteHeadChildrenAsync(HtmlWriter children, CancellationToken cancellationToken)
+    {
+        WriteHeadChildren(children);
+        return ValueTask.CompletedTask;
+    }
 
     /// <summary>
-    /// The document's "link" elements.
-    /// Empty by default.
+    /// Writes attributes to the body element.
+    /// Not used if <see cref="IHtmlDocumentAsync.WriteBodyAttributesAsync(AttributeWriter, CancellationToken)"/> is implemented.
     /// </summary>
-    IReadOnlyCollection<Link> Links => [];
+    /// <param name="attributes">Receives the attributes.</param>
+    void WriteBodyAttributes(AttributeWriter attributes)
+    {
+    }
+
+    ValueTask IHtmlDocumentAsync.WriteBodyAttributesAsync(AttributeWriter attributes, CancellationToken cancellationToken)
+    {
+        WriteBodyAttributes(attributes);
+        return ValueTask.CompletedTask;
+    }
 
     /// <summary>
-    /// The document's "link" elements.
-    /// Empty by default.
+    /// Writes children do the head element.
+    /// Not used if <see cref="IHtmlDocumentAsync.WriteBodyChildrenAsync(HtmlWriter, CancellationToken)"/> is implemented.
     /// </summary>
-    IReadOnlyCollection<Style> Styles => [];
+    /// <param name="children">Receives the child elements.</param>
+    void WriteBodyChildren(HtmlWriter children)
+    {
+    }
 
-    /// <summary>
-    /// Writes the content of an HTML document's body.
-    /// </summary>
-    /// <param name="writer">Receives the write commands.</param>
-    /// <param name="cancellationToken">Indicates that the document is no longer needed so processing can be cancelled.</param>
-    /// <returns>A task that, upon completion, indicates document writing is complete.</returns>
-    ValueTask WriteBodyContentsAsync(HtmlWriter writer, CancellationToken cancellationToken = default);
+    ValueTask IHtmlDocumentAsync.WriteBodyChildrenAsync(HtmlWriter children, CancellationToken cancellationToken)
+    {
+        WriteBodyChildren(children);
+        return ValueTask.CompletedTask;
+    }
 }
