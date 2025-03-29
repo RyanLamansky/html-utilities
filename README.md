@@ -26,7 +26,10 @@ Note that this library is still early in development and does not yet have a rob
 - The API ensures attributes and element trees are always well-formed.
 - The API always emits an end tag when the element requires it.
 - Produces the simplest well-formed format supported by modern browsers and compliant with the HTML specification. For example, instead of `<input type="text" />`, this project would produce `<input type=text>`, as HTML rules don't require quotes when the value meets certain criteria and the "`/`" is never required by normal HTML.
-- Although the API ensures well-formed output, it doesn't block unknown elements or inappropriate relationships in element trees like a `<p>` that a direct child of a `<head>`.
+- Structural validity is not enforced:
+  - Custom elements are allowed.
+  - Duplicate attributes can be written to a single element start tag.
+  - Inappropriate relationships in element trees, like `<p>` that is a child of `<a>`, are not blocked.
 
 The HTML generation APIs work by wrapping [`PipeWriter`](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipelines.pipewriter), such as what's provided by ASP.NET Core via [`HttpResponse.BodyWriter`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httpresponse.bodywriter).
 It does not expose this writer, so code operating only on this library's APIs can't produce broken HTML, although if the raw writer is shared some other way, these guarantees can be bypassed.

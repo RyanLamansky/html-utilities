@@ -57,10 +57,10 @@ public static class HtmlDocumentExtensions
         var htmlWriter = new HtmlWriter(writer, new Validated.ValidatedAttribute("nonce", cspNonceUtf16));
 
         foreach (var link in document.Links ?? [])
-            link.Write(htmlWriter);
+            link.Write(htmlWriter, null, null);
 
         foreach (var style in document.Styles ?? [])
-            style.Write(htmlWriter);
+            style.Write(htmlWriter, null, null);
 
         writer.Write("</head><body>"u8);
 

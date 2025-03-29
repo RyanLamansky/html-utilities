@@ -1,17 +1,17 @@
 ﻿namespace HtmlUtilities.Validated.Standardized;
 
 /// <summary>
-/// The HTML "br" element, from https://html.spec.whatwg.org/#the-br-element.
+/// The HTML "noscript" element, from https://html.spec.whatwg.org/#the-noscript-element.
 /// </summary>
-public class LineBreak : StandardElement
+public class NoScript : StandardElement
 {
     internal sealed override void Write(HtmlWriter writer, Action<AttributeWriter>? dynamicAttributes, Action<HtmlWriter>? children)
     {
-        writer.WriteElementSelfClosing("<br>"u8, attributes =>
+        writer.WriteElementRaw("<noscript>"u8, attributes =>
         {
             base.WriteGlobalAttributes(attributes);
 
             dynamicAttributes?.Invoke(attributes);
-        });
+        }, children);
     }
 }

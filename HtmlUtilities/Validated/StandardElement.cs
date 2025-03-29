@@ -50,13 +50,13 @@ public abstract class StandardElement
     {
     }
 
-    internal abstract void Write(HtmlWriter writer);
+    internal abstract void Write(HtmlWriter writer, Action<AttributeWriter>? dynamicAttributes = null, Action<HtmlWriter>? children = null);
 
     /// <summary>
     /// Writes global attributes to the provided <see cref="AttributeWriter"/>.
     /// </summary>
     /// <param name="writer">Receives the attributes.</param>
-    private protected void Write(AttributeWriter writer)
+    private protected void WriteGlobalAttributes(AttributeWriter writer)
     {
         writer.WriteRaw(" accesskey"u8, AccessKey);
         writer.WriteRaw(" id"u8, Id);
@@ -76,17 +76,20 @@ public abstract class StandardElement
     /// <summary>
     /// Returns a UTF-8 encoded memory view containing the written object.
     /// </summary>
+    /// <param name="dynamicAttributes">If provided, writes dynamic attributes after any that are set on the instance.</param>
+    /// <param name="children">If provided, writes child elements.</param>
     /// <returns>A UTF-8 encoded memory view containing the written object.</returns>
     /// <remarks>
     /// The returned view points to a section of an array that could be much larger than needed.
     /// If you intend to store this for a long time, copy it to an exact-size buffer.
     /// </remarks>
-    public ReadOnlyMemory<byte> ToUtf8()
+    public ReadOnlyMemory<byte> ToUtf8(Action<AttributeWriter>? dynamicAttributes = null, Action<HtmlWriter>? children = null)
     {
         var writer = new MemoryPipeWriter();
 
-        Write(new HtmlWriter(writer));
+        Write(new(writer), dynamicAttributes, children);
 
         return writer.WrittenMemory;
     }
+
 }

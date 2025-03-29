@@ -15,14 +15,16 @@ public class Link : StandardElement
     /// </summary>
     public ValidatedAttributeValue? Href { get => GetAttribute(); set => SetAttribute(value); }
 
-    internal sealed override void Write(HtmlWriter writer)
+    internal sealed override void Write(HtmlWriter writer, Action<AttributeWriter>? dynamicAttributes, Action<HtmlWriter>? children)
     {
         writer.WriteElementSelfClosing("<link>"u8, attributes =>
         {
-            base.Write(attributes);
+            base.WriteGlobalAttributes(attributes);
 
             attributes.WriteRaw(" rel"u8, Rel);
             attributes.WriteRaw(" href"u8, Href);
+
+            dynamicAttributes?.Invoke(attributes);
         });
     }
 }

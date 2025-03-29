@@ -15,14 +15,16 @@ public class Style : StandardElement
     /// </summary>
     public ValidatedAttributeValue? Media { get => GetAttribute(); set => SetAttribute(value); }
 
-    internal sealed override void Write(HtmlWriter writer)
+    internal sealed override void Write(HtmlWriter writer, Action<AttributeWriter>? dynamicAttributes, Action<HtmlWriter>? children)
     {
         writer.WriteElementRaw("<style>"u8, attributes =>
         {
-            Write(attributes);
+            WriteGlobalAttributes(attributes);
             attributes.Write(writer.cspNonce);
 
             attributes.WriteRaw(" media"u8, Media);
+
+            dynamicAttributes?.Invoke(attributes);
         }, children => children.WriteText(Content));
     }
 }

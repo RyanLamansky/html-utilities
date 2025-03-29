@@ -73,13 +73,15 @@ public class Script : StandardElement
         }
     }
 
-    internal sealed override void Write(HtmlWriter writer) => writer.WriteElementRaw("<script>"u8, attributes =>
+    internal sealed override void Write(HtmlWriter writer, Action<AttributeWriter>? dynamicAttributes, Action<HtmlWriter>? children) => writer.WriteElementRaw("<script>"u8, attributes =>
     {
         attributes.WriteRaw(" type"u8, this.Type);
         attributes.WriteRaw(" async"u8, this.Async);
         attributes.WriteRaw(" defer"u8, this.Defer);
 
-        base.Write(attributes);
+        base.WriteGlobalAttributes(attributes);
         attributes.Write(writer.cspNonce);
+
+        dynamicAttributes?.Invoke(attributes);
     }, writer => writer.WriteText(this.content));
 }

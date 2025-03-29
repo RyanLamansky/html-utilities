@@ -2,6 +2,7 @@
 
 namespace HtmlUtilities;
 
+using System.Diagnostics;
 using Validated;
 
 /// <summary>
@@ -67,10 +68,28 @@ public sealed class HtmlWriter
     }
 
     /// <summary>
-    /// Writes a validated element with no additional attributes or children.
+    /// Writes a standardized element with no additional attributes or children.
     /// </summary>
-    /// <param name="element">The validated HTML element.</param>
-    public void WriteElement(StandardElement? element) => element?.Write(this);
+    /// <param name="element">The standardized HTML element.</param>
+    public void WriteElement(StandardElement? element) => element?.Write(this, null);
+
+    /// <summary>
+    /// Writes a standardized element with no additional attributes or children.
+    /// </summary>
+    /// <param name="element">The standardized HTML element.</param>
+    /// <param name="children">If provided, writes child elements.</param>
+    public void WriteElement(StandardElement? element, Action<HtmlWriter>? children) => WriteElement(element, null, children);
+
+    /// <summary>
+    /// Writes a standardized element with no additional attributes or children.
+    /// </summary>
+    /// <param name="element">The standardized HTML element.</param>
+    /// <param name="dynamicAttributes">If provided, writes dynamic attributes after any that are set on the instance.</param>
+    /// <param name="children">If provided, writes child elements.</param>
+    public void WriteElement(
+        StandardElement? element,
+        Action<AttributeWriter>? dynamicAttributes = null,
+        Action<HtmlWriter>? children = null) => element?.Write(this, dynamicAttributes, children);
 
     /// <summary>
     /// Writes an element with no attributes or children.
@@ -117,6 +136,8 @@ public sealed class HtmlWriter
 
     internal void WriteElementRaw(ReadOnlySpan<byte> nameWithAngleBrackets, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
     {
+        Debug.Assert(nameWithAngleBrackets.Length >= 3 && nameWithAngleBrackets[0] == '<' && nameWithAngleBrackets[^1] == '>');
+
         var writer = this.writer;
         var start = nameWithAngleBrackets;
         Span<byte> end = stackalloc byte[nameWithAngleBrackets.Length + 1];
@@ -145,7 +166,7 @@ public sealed class HtmlWriter
     /// Writes a validated element with optional attributes and child content.
     /// </summary>
     /// <param name="element">The validated HTML element.</param>
-    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
+    /// <param name="attributes">If provided, writes attributes to the element. Attributes baked into <paramref name="element"/> are always included.</param>
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentException"><paramref name="element"/> was never initialized.</exception>
     public void WriteElement(ValidatedElement element, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
@@ -178,7 +199,7 @@ public sealed class HtmlWriter
     /// Writes an element with optional attributes and child content.
     /// </summary>
     /// <param name="name">The HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
+    /// <param name="attributes">If provided, writes attributes to the element.</param>
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public void WriteElement(ReadOnlySpan<char> name, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
@@ -217,7 +238,7 @@ public sealed class HtmlWriter
     /// Writes an element with optional attributes and child content.
     /// </summary>
     /// <param name="name">The UTF-8 HTML element name.</param>
-    /// <param name="attributes">If provided, writes attributes to the element. Elements baked into the start tag are always included.</param>
+    /// <param name="attributes">If provided, writes attributes to the element.</param>
     /// <param name="children">If provided, writes child elements.</param>
     /// <exception cref="ArgumentException">The element name is not valid.</exception>
     public void WriteElement(ReadOnlySpan<byte> name, Action<AttributeWriter>? attributes = null, Action<HtmlWriter>? children = null)
