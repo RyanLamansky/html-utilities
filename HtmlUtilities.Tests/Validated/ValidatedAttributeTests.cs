@@ -5,9 +5,7 @@ public static class ValidatedAttributeTests
     [Fact]
     public static void ValidatedAttributeUnconstructedIsBlank()
     {
-        var array = new ValidatedAttribute[1];
-
-        Assert.Empty(array[0].ToString());
+        Assert.Empty(((ValidatedAttribute)default).ToString());
     }
 
     [Theory]
@@ -21,5 +19,13 @@ public static class ValidatedAttributeTests
     public static void AttributeIsFormattedCorrectly(string name, string? value, string expected)
     {
         Assert.Equal(expected, new ValidatedAttribute(name, value).ToString());
+
+        Span<byte> utf8Name = stackalloc byte[CodePoint.Utf8BytesNeeded(name)];
+        Span<byte> utf8Value = stackalloc byte[CodePoint.Utf8BytesNeeded(value)];
+
+        CodePoint.SwitchUtf(name, utf8Name);
+        CodePoint.SwitchUtf(value, utf8Value);
+
+        Assert.Equal(expected, new ValidatedAttribute(utf8Name, utf8Value).ToString());
     }
 }

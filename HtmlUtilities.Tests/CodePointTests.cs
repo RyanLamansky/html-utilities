@@ -1,5 +1,6 @@
 ﻿using static System.Text.Encoding;
 using static HtmlUtilities.CodePointInfraCategory;
+using static System.Globalization.CultureInfo;
 
 namespace HtmlUtilities;
 
@@ -201,7 +202,7 @@ public static class CodePointTests
     public static void ConvertToStringWithFormatNullAndDefaultedFormatProviderMatchesToString(int codePoint)
     {
         var cp = new CodePoint(codePoint);
-        Assert.Equal(cp.ToString(), cp.ToString(null));
+        Assert.Equal(cp.ToString(), cp.ToString(null, default));
     }
 
     [Theory]
@@ -223,7 +224,7 @@ public static class CodePointTests
     public static void ConvertToStringWithFormatX2MatchesUInt32ToStringX2(int codePoint)
     {
         var cp = new CodePoint(codePoint);
-        Assert.Equal(codePoint.ToString("X2"), cp.ToString("X2", null));
+        Assert.Equal(codePoint.ToString("X2", InvariantCulture), cp.ToString("X2", InvariantCulture));
     }
 
     [Theory]
@@ -235,7 +236,7 @@ public static class CodePointTests
     public static void TrySpanFormattable(string expected, int codePoint)
     {
         Span<char> destination = stackalloc char[2];
-        Assert.True(new CodePoint(codePoint).TryFormat(destination, out var charsWritten));
+        Assert.True(new CodePoint(codePoint).TryFormat(destination, out var charsWritten, provider: InvariantCulture));
 #pragma warning disable CA1062 // expected will never be null
         Assert.Equal(expected.Length, charsWritten);
 #pragma warning restore
@@ -245,11 +246,11 @@ public static class CodePointTests
     [Fact]
     public static void TrySpanFormattableTooShortIsFalse()
     {
-        Assert.False(new CodePoint('T').TryFormat([], out var charsWritten));
-        Assert.False(new CodePoint(0x24B62).TryFormat([], out charsWritten));
+        Assert.False(new CodePoint('T').TryFormat([], out var charsWritten, provider: InvariantCulture));
+        Assert.False(new CodePoint(0x24B62).TryFormat([], out charsWritten, provider: InvariantCulture));
 
         Span<char> destination = stackalloc char[1];
-        Assert.False(new CodePoint(0x24B62).TryFormat(destination, out charsWritten));
+        Assert.False(new CodePoint(0x24B62).TryFormat(destination, out charsWritten, provider: InvariantCulture));
     }
 
     [Theory]
@@ -261,11 +262,11 @@ public static class CodePointTests
     {
         Span<char> destination = stackalloc char[10];
 
-        Assert.True(codePoint.TryFormat(destination, out var charsWritten, "X2"));
+        Assert.True(codePoint.TryFormat(destination, out var charsWritten, "X2", InvariantCulture));
         var expected = new string(destination[..charsWritten]);
 
         var cp = new CodePoint(codePoint);
-        Assert.True(cp.TryFormat(destination, out charsWritten, "X2", null));
+        Assert.True(cp.TryFormat(destination, out charsWritten, "X2", InvariantCulture));
         var actual = new string(destination[..charsWritten]);
 
         Assert.Equal(expected, actual);

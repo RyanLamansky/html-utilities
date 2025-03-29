@@ -17,7 +17,7 @@ Note that this library is still early in development and does not yet have a rob
 ## Performance
 
 - All components of the HTML document can be pre-escaped and pre-converted to UTF-8, significantly reducing repetition in environments where substantially similar documents are produced in large quantities, such as a website.
-- Strategic use of `readonly ref struct` to minimize heap memory allocation.
+- Strategic use of `struct` to minimize heap memory allocation.
 - No use of reflection.
 - Forward-only parsing logic, giving predictable performance for any input.
 
@@ -28,4 +28,5 @@ Note that this library is still early in development and does not yet have a rob
 - Produces the simplest well-formed format supported by modern browsers and compliant with the HTML specification. For example, instead of `<input type="text" />`, this project would produce `<input type=text>`, as HTML rules don't require quotes when the value meets certain criteria and the "`/`" is never required by normal HTML.
 - Although the API ensures well-formed output, it doesn't block unknown elements or inappropriate relationships in element trees like a `<p>` that a direct child of a `<head>`.
 
-The HTML generation APIs work by wrapping [`IBufferWriter<byte>`](https://docs.microsoft.com/en-us/dotnet/api/system.buffers.ibufferwriter-1), such as what's provided by ASP.NET Core via [`HttpResponse.BodyWriter`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httpresponse.bodywriter). It does not expose this writer, so code operating only on this library's APIs can't produce broken HTML, although if the raw writer is shared some other way, these guarantees can be bypassed.
+The HTML generation APIs work by wrapping [`PipeWriter`](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipelines.pipewriter), such as what's provided by ASP.NET Core via [`HttpResponse.BodyWriter`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httpresponse.bodywriter).
+It does not expose this writer, so code operating only on this library's APIs can't produce broken HTML, although if the raw writer is shared some other way, these guarantees can be bypassed.

@@ -18,7 +18,10 @@ public abstract class StandardElement
     private protected void SetAttribute(ValidatedAttributeValue? value, [CallerMemberName] string name = null!)
     {
         if (value is null)
+        {
+            attributes.Remove(name);
             return;
+        }
 
         attributes[name] = value.GetValueOrDefault();
     }
@@ -68,5 +71,22 @@ public abstract class StandardElement
         Write(new HtmlWriter(writer));
 
         return Encoding.UTF8.GetString(writer.WrittenSpan);
+    }
+
+    /// <summary>
+    /// Returns a UTF-8 encoded memory view containing the written object.
+    /// </summary>
+    /// <returns>A UTF-8 encoded memory view containing the written object.</returns>
+    /// <remarks>
+    /// The returned view points to a section of an array that could be much larger than needed.
+    /// If you intend to store this for a long time, copy it to an exact-size buffer.
+    /// </remarks>
+    public ReadOnlyMemory<byte> ToUtf8()
+    {
+        var writer = new MemoryPipeWriter();
+
+        Write(new HtmlWriter(writer));
+
+        return writer.WrittenMemory;
     }
 }

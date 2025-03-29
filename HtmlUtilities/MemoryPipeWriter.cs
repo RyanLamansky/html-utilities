@@ -25,4 +25,6 @@ internal sealed class MemoryPipeWriter : PipeWriter
     public override Span<byte> GetSpan(int sizeHint = 0) => writer.GetSpan(sizeHint);
 
     public ReadOnlySpan<byte> WrittenSpan => writer.WrittenSpan;
+
+    public ReadOnlyMemory<byte> WrittenMemory => writer.WrittenMemory;
 }

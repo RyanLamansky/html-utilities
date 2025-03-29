@@ -97,7 +97,7 @@ public readonly struct ValidatedScript : IEquatable<ValidatedScript>
         ArgumentNullException.ThrowIfNull(importMap);
 
         // Since importMap is guaranteed to be JSON-based, a fast path may be possible.
-        return ForInlineSource(importMap.ToString(), attributes);
+        return ForInlineSource(importMap.ToUtf8.Span, attributes);
     }
 
     internal static void Validate(ref ArrayBuilder<byte> writer, ReadOnlySpan<char> script)

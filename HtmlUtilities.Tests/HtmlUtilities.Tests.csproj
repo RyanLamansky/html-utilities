@@ -9,7 +9,7 @@
     <DebugType>embedded</DebugType>
     <RootNamespace>HtmlUtilities</RootNamespace>
     <NoWarn>1591</NoWarn>
-    <AnalysisMode>Minimum</AnalysisMode>
+    <AnalysisMode>Recommended</AnalysisMode>
   </PropertyGroup>
 
   <ItemGroup>
