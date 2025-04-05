@@ -83,6 +83,21 @@ public sealed class HtmlWriter
 
     /// <summary>
     /// Writes an HTML document using the provided context asynchronously.
+    /// <see cref="HttpContext.RequestAborted"/> is used as a cancellation token.
+    /// </summary>
+    /// <param name="context">Receives the written bytes.</param>
+    /// <param name="document">The document to write.</param>
+    /// <returns>A task that represents and wraps the asynchronous document writing operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> and <paramref name="document"/> cannot be null.</exception>
+    public static ValueTask WriteDocumentAsync(HttpContext context, IHtmlDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        return WriteDocumentAsync(context, document, context.RequestAborted);
+    }
+
+    /// <summary>
+    /// Writes an HTML document using the provided context asynchronously.
     /// </summary>
     /// <param name="context">Receives the written bytes.</param>
     /// <param name="document">The document to write.</param>
