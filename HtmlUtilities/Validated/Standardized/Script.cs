@@ -50,6 +50,15 @@ public class Script : StandardElement
     /// </summary>
     public bool Defer { get; set; }
 
+    /// <summary>
+    /// The source of a script. Should not be combined with <see cref="Content"/>.
+    /// </summary>
+    public ValidatedAttributeValue? Src
+    {
+        get => GetAttribute();
+        set => SetAttribute(value);
+    }
+
     private ValidatedText content;
 
     /// <summary>
@@ -78,6 +87,7 @@ public class Script : StandardElement
         attributes.WriteRaw(" type"u8, this.Type);
         attributes.WriteRaw(" async"u8, this.Async);
         attributes.WriteRaw(" defer"u8, this.Defer);
+        attributes.WriteRaw(" src"u8, this.Src);
 
         base.WriteGlobalAttributes(attributes);
         attributes.Write(writer.cspNonce);
