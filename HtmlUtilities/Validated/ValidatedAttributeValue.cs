@@ -61,6 +61,22 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
     }
 
     /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided <see cref="ReadOnlyMemory{T}"/> of type <see cref="byte"/>.
+    /// </summary>
+    /// <param name="value">The UTF-8 value to prepare as an attribute.</param>
+    public ValidatedAttributeValue(ReadOnlyMemory<byte> value) : this(value.Span)
+    {
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided array of type <see cref="byte"/>.
+    /// </summary>
+    /// <param name="value">The UTF-8 value to prepare as an attribute.</param>
+    public ValidatedAttributeValue(byte[]? value) : this(new ReadOnlyMemory<byte>(value))
+    {
+    }
+
+    /// <summary>
     /// Creates a new <see cref="ValidatedAttributeValue"/> from the provided number.
     /// </summary>
     /// <param name="value">The value to prepare as an attribute.</param>
