@@ -109,7 +109,7 @@ public readonly struct ValidatedScript : IEquatable<ValidatedScript>
         if (temp.Contains("<!--", StringComparison.OrdinalIgnoreCase) || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
 
-        foreach (var c in CodePoint.GetEnumerable(script))
+        foreach (var c in RuneSmith.GetEnumerable(script))
             c.WriteUtf8To(ref writer);
     }
 
@@ -122,7 +122,7 @@ public readonly struct ValidatedScript : IEquatable<ValidatedScript>
         if (temp.Contains("<!--", StringComparison.OrdinalIgnoreCase) || temp.Contains("<script", StringComparison.OrdinalIgnoreCase) || temp.Contains("</script", StringComparison.OrdinalIgnoreCase))
             throw new ArgumentException("script contains a potentially invalid character sequence.", nameof(script));
 
-        foreach (var c in CodePoint.GetEnumerable(script))
+        foreach (var c in RuneSmith.GetEnumerable(script))
             c.WriteUtf8To(ref writer);
     }
 

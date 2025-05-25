@@ -1,7 +1,7 @@
 ﻿namespace HtmlUtilities;
 
 /// <summary>
-/// The categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+/// The categories of a <see cref="System.Text.Rune"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
 /// </summary>
 [Flags]
 public enum CodePointInfraCategory

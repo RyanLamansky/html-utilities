@@ -263,7 +263,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
         if (value.IsEmpty)
             return;
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -275,7 +275,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
                 case '`':
                     break;
                 default:
-                    if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiWhitespace) != 0)
+                    if ((codePoint.InfraCategories() & CodePointInfraCategory.AsciiWhitespace) != 0)
                         break;
 
                     continue;
@@ -292,7 +292,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
     {
         writer.Write('=');
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -310,7 +310,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
         writer.Write('=');
         writer.Write('"');
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -333,7 +333,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
         if (value.IsEmpty)
             return;
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -345,7 +345,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
                 case '`':
                     break;
                 default:
-                    if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiWhitespace) != 0)
+                    if ((codePoint.InfraCategories() & CodePointInfraCategory.AsciiWhitespace) != 0)
                         break;
 
                     continue;
@@ -362,7 +362,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
     {
         writer.Write('=');
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {
@@ -380,7 +380,7 @@ public readonly struct ValidatedAttributeValue : IEquatable<ValidatedAttributeVa
         writer.Write('=');
         writer.Write('"');
 
-        foreach (var codePoint in CodePoint.GetEnumerable(value))
+        foreach (var codePoint in RuneSmith.GetEnumerable(value))
         {
             switch (codePoint.Value)
             {

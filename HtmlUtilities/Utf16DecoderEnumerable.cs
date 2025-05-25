@@ -1,7 +1,9 @@
-﻿namespace HtmlUtilities;
+﻿using System.Text;
+
+namespace HtmlUtilities;
 
 /// <summary>
-/// Wraps a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> for on-demand enumeration into <see cref="CodePoint"/>s.
+/// Wraps a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> for on-demand enumeration into <see cref="Rune"/>s.
 /// </summary>
 public readonly ref struct Utf16DecoderEnumerable
 {
@@ -13,7 +15,7 @@ public readonly ref struct Utf16DecoderEnumerable
     }
 
     /// <summary>
-    /// Gets an enumerator to produce <see cref="CodePoint"/> from the source.
+    /// Gets an enumerator to produce <see cref="Rune"/> from the source.
     /// </summary>
     /// <returns>The enumerator.</returns>
     public Utf16DecoderEnumerator GetEnumerator() => new(source);

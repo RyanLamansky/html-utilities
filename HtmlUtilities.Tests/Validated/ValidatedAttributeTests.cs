@@ -20,11 +20,11 @@ public static class ValidatedAttributeTests
     {
         Assert.Equal(expected, new ValidatedAttribute(name, value).ToString());
 
-        Span<byte> utf8Name = stackalloc byte[CodePoint.Utf8BytesNeeded(name)];
-        Span<byte> utf8Value = stackalloc byte[CodePoint.Utf8BytesNeeded(value)];
+        Span<byte> utf8Name = stackalloc byte[RuneSmith.Utf8BytesNeeded(name)];
+        Span<byte> utf8Value = stackalloc byte[RuneSmith.Utf8BytesNeeded(value)];
 
-        CodePoint.SwitchUtf(name, utf8Name);
-        CodePoint.SwitchUtf(value, utf8Value);
+        RuneSmith.SwitchUtf(name, utf8Name);
+        RuneSmith.SwitchUtf(value, utf8Value);
 
         Assert.Equal(expected, new ValidatedAttribute(utf8Name, utf8Value).ToString());
     }

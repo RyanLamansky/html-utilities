@@ -34,9 +34,9 @@ public readonly struct ValidatedAttributeName : IEquatable<ValidatedAttributeNam
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
         writer.Write(' ');
-        foreach (var codePoint in CodePoint.GetEnumerable(name))
+        foreach (var codePoint in RuneSmith.GetEnumerable(name))
         {
-            var categories = codePoint.InfraCategories;
+            var categories = codePoint.InfraCategories();
             if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
                 throw new ArgumentException($"name has an invalid character, '{(char)codePoint.Value}'.", nameof(name));
 
@@ -85,9 +85,9 @@ public readonly struct ValidatedAttributeName : IEquatable<ValidatedAttributeNam
             throw new ArgumentException("name cannot be an empty string.", nameof(name));
 
         writer.Write(' ');
-        foreach (var codePoint in CodePoint.GetEnumerable(name))
+        foreach (var codePoint in RuneSmith.GetEnumerable(name))
         {
-            var categories = codePoint.InfraCategories;
+            var categories = codePoint.InfraCategories();
             if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 && (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control)) != 0)
                 throw new ArgumentException($"name has an invalid character, '{(char)codePoint.Value}'.", nameof(name));
 

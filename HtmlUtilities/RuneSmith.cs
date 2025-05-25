@@ -1,30 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using static HtmlUtilities.CodePointInfraCategory;
+using Rune = System.Text.Rune;
 
 namespace HtmlUtilities;
 
 /// <summary>
-/// Represents a single Unicode code point as described by https://infra.spec.whatwg.org/#code-points.
-/// Also provided are several mechanisms to convert to and from <see cref="CodePoint"/> values.
+/// Adds features to the <see cref="Rune"/> class.
 /// </summary>
-/// <param name="value">The raw Unicode code point value.</param>
-public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparable, IComparable<CodePoint>, ISpanFormattable, IFormattable
+public static class RuneSmith
 {
-    /// <summary>
-    /// Gets the raw Unicode code point value.
-    /// Valid code points are in the range of 0 through 0x10FFFF (1114111 in decimal), but <see cref="CodePoint"/> accepts the full range of <see cref="uint"/>.
-    /// </summary>
-    public uint Value { get; } = value;
-
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> with the provided raw Unicode value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public CodePoint(int value) : this((uint)value)
-    {
-    }
-
     // This pre-calculated lookup table provides O(1) lookup time for ASCII characters.
     // https://github.com/dotnet/runtime/issues/60948 (via https://github.com/dotnet/roslyn/pull/61414) accelerates it.
     // It works by creating a ReadOnlySpan into a compile-time generated constant.
@@ -161,20 +145,18 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     ];
 
     /// <summary>
-    /// Gets the categories of a <see cref="CodePoint"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
+    /// Gets the categories of a <see cref="Rune"/> as defined by <a href="https://infra.spec.whatwg.org/#code-points">the "infra" standard</a>.
     /// Code points outside the range of 0 through 0x10FFFF (1114111 in decimal) always return <see cref="None"/>.
     /// </summary>
-    public CodePointInfraCategory InfraCategories
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static CodePointInfraCategory InfraCategories(this Rune rune)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            // Considering that this is an HTML-oriented project, ASCII will be very common so we have a fast path for that.
-            if (Value < AsciiInfraCategories.Length)
-                return AsciiInfraCategories[(int)Value];
+        var value = (uint)rune.Value;
+        // Considering that this is an HTML-oriented project, ASCII will be very common so we have a fast path for that.
+        if (value < AsciiInfraCategories.Length)
+            return AsciiInfraCategories[(int)value];
 
-            return NonAsciiInfraCategory(Value);
-        }
+        return NonAsciiInfraCategory(value);
     }
 
     private static CodePointInfraCategory NonAsciiInfraCategory(uint codePoint) => codePoint switch
@@ -193,34 +175,13 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
         _ => ScalarValue,
     };
 
-    /// <summary>
-    /// Gets the number of bytes required to encode this code point with UTF-8.
-    /// </summary>
-    public int Utf8ByteCount => Value switch
-    {
-        <= 0x7F => 1,
-        <= 0x7FF => 2,
-        <= 0xFFFF => 3,
-        <= 0x10FFFF => 4,
-        _ => 0
-    };
-
-    /// <summary>
-    /// Gets the number of bytes required to encode this code point with UTF-16.
-    /// </summary>
-    public int Utf16ByteCount => Value switch
-    {
-        <= 0xD7FF or >= 0xE000 and <= 0xFFFF => 2,
-        <= 0x10FFFF => 4,
-        _ => 0
-    };
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteUtf8To(Span<byte> destination, ref int location)
+    private static void WriteUtf8To(this Rune rune, Span<byte> destination, ref int location)
     {
-        if (Value <= 0x7F)
+        var value = (uint)rune.Value;
+        if (value <= 0x7F)
         {
-            destination[location++] = (byte)Value;
+            destination[location++] = (byte)value;
             return;
         }
 
@@ -251,13 +212,13 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
             }
         }
 
-        WriteUtf8ToNonAscii(Value, destination, ref location);
+        WriteUtf8ToNonAscii(value, destination, ref location);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void WriteUtf8To(ref ArrayBuilder<byte> writer)
+    internal static void WriteUtf8To(this Rune rune, ref ArrayBuilder<byte> writer)
     {
-        var value = this.Value;
+        var value = (uint)rune.Value;
 
         if (value <= 0x7F)
         {
@@ -301,199 +262,12 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
         WriteUtf8ToNonAscii(ref writer, value);
     }
 
-    /// <inheritdoc />
-    public int CompareTo(CodePoint other) => this.Value.CompareTo(other.Value);
-
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is not CodePoint codePoint)
-            throw new ArgumentException("obj is not a CodePoint.", nameof(obj));
-
-        return CompareTo(codePoint);
-    }
-
-    /// <inheritdoc />
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is CodePoint cp && Equals(cp);
-
-    /// <summary>
-    /// Returns true if the current <see cref="Value"/> matches the one provided.
-    /// </summary>
-    /// <param name="other">Another value.</param>
-    /// <returns>True if they match, otherwise false.</returns>
-    public bool Equals(CodePoint other) => other.Value == this.Value;
-
-    /// <summary>
-    /// Returns <see cref="Value"/> cast to an <see cref="int"/>.
-    /// </summary>
-    /// <returns><see cref="Value"/> cast to an <see cref="int"/>.</returns>
-    public override int GetHashCode() => (int)this.Value;
-
-    /// <summary>
-    /// Converts <see cref="Value"/> into a string.
-    /// </summary>
-    /// <returns>The string representation of <see cref="Value"/>.</returns>
-    public override string ToString()
-    {
-        var value = this.Value;
-
-        if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
-            return ((char)value).ToString();
-
-        if (value > 0x10FFFF)
-            return string.Empty;
-
-        Span<char> chars = stackalloc char[2];
-
-        value -= 0x10000;
-        chars[0] = (char)(value / 0x400 + 0xD800);
-        chars[1] = (char)(value % 0x400 + 0xDC00);
-
-        return new string(chars);
-    }
-
-    /// <inheritdoc />
-    public string ToString(string? format, IFormatProvider? formatProvider = null) =>
-        string.IsNullOrEmpty(format) ? ToString() : Value.ToString(format, formatProvider);
-
-    /// <inheritdoc />
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
-    {
-        if (!format.IsEmpty)
-            return Value.TryFormat(destination, out charsWritten, format, provider);
-
-        var value = this.Value;
-
-        if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
-        {
-            if (destination.IsEmpty)
-            {
-                charsWritten = 0;
-                return false;
-            }
-
-            destination[0] = (char)value;
-
-            charsWritten = 1;
-            return true;
-        }
-
-        if (value > 0x10FFFF)
-        {
-            charsWritten = 0;
-            return true;
-        }
-
-        if (destination.Length < 2)
-        {
-            charsWritten = 0;
-            return false;
-        }
-
-        value -= 0x10000;
-        destination[0] = (char)(value / 0x400 + 0xD800);
-        destination[1] = (char)(value % 0x400 + 0xDC00);
-
-        charsWritten = 2;
-        return true;
-    }
-
-    /// <summary>
-    /// Compares two <see cref="CodePoint"/> values for equality.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if the values match, otherwise false.</returns>
-    public static bool operator ==(CodePoint left, CodePoint right) => left.Equals(right);
-
-    /// <summary>
-    /// Compares two <see cref="CodePoint"/> values for inequality.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if the values do not match, otherwise false.</returns>
-    public static bool operator !=(CodePoint left, CodePoint right) => !(left == right);
-
-    /// <summary>
-    /// Compares determines whether the left side <see cref="CodePoint"/> is less than the right side.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if <paramref name="left"/> is less than <paramref name="right"/>, otherwise false.</returns>
-    public static bool operator <(CodePoint left, CodePoint right) => left.Value < right.Value;
-
-    /// <summary>
-    /// Compares determines whether the left side <see cref="CodePoint"/> is greater than the right side.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if <paramref name="left"/> is greater than <paramref name="right"/>, otherwise false.</returns>
-    public static bool operator >(CodePoint left, CodePoint right) => left.Value > right.Value;
-
-    /// <summary>
-    /// Compares determines whether the left side <see cref="CodePoint"/> is less than or equal to the right side.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if <paramref name="left"/> is less than or equal to <paramref name="right"/>, otherwise false.</returns>
-    public static bool operator <=(CodePoint left, CodePoint right) => left.Value <= right.Value;
-
-    /// <summary>
-    /// Compares determines whether the left side <see cref="CodePoint"/> is greater than or equal to than the right side.
-    /// </summary>
-    /// <param name="left">The left side of the comparison.</param>
-    /// <param name="right">The right side of the comparison.</param>
-    /// <returns>True if <paramref name="left"/> is greater than or equal to <paramref name="right"/>, otherwise false.</returns>
-    public static bool operator >=(CodePoint left, CodePoint right) => left.Value >= right.Value;
-
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> value from the provided value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public static implicit operator CodePoint(byte value) => new(value);
-
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> value from the provided value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public static implicit operator CodePoint(int value) => new((uint)value);
-
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> value from the provided value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public static implicit operator CodePoint(uint value) => new(value);
-
-    /// <summary>
-    /// Creates a new <see cref="CodePoint"/> value from the provided value.
-    /// </summary>
-    /// <param name="value">The raw Unicode code point value.</param>
-    public static implicit operator CodePoint(char value) => new(value);
-
-    /// <summary>
-    /// Converts the <see cref="CodePoint"/> value into an <see cref="int"/>.
-    /// </summary>
-    /// <param name="value">The value to convert.</param>
-    public static implicit operator int(CodePoint value) => (int)value.Value;
-
-    /// <summary>
-    /// Converts the <see cref="CodePoint"/> value into an <see cref="uint"/>.
-    /// </summary>
-    /// <param name="value">The value to convert.</param>
-    public static implicit operator uint(CodePoint value) => value.Value;
-
-    /// <summary>
-    /// Converts the <see cref="CodePoint"/> value into an <see cref="char"/>.
-    /// </summary>
-    /// <param name="value">The value to convert.</param>
-    /// <exception cref="OverflowException">The <see cref="Value"/> of the provided <see cref="CodePoint"/> can't be converted to <see cref="char"/>.</exception>
-    public static explicit operator char(CodePoint value) => checked((char)value.Value);
-
     /// <summary>
     /// Decodes a sequence of UTF-8 bytes into Unicode code points. Invalid bytes are skipped.
     /// </summary>
     /// <param name="source">The sequence of bytes.</param>
     /// <returns>The sequence of code points.</returns>
-    public static IEnumerable<CodePoint> DecodeUtf8(IEnumerable<byte>? source)
+    public static IEnumerable<Rune> DecodeUtf8(IEnumerable<byte>? source)
     {
         if (source is null)
             yield break;
@@ -506,7 +280,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
             if (current <= 0x7f)
             {
-                yield return current;
+                yield return new(current);
                 continue;
             }
 
@@ -527,7 +301,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                yield return (b1 << 6) | current & 0b00111111;
+                yield return new((b1 << 6) | current & 0b00111111);
             }
             else if ((current >> 4) == 0b1110)
             {
@@ -539,7 +313,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                yield return (b1 << 12) | (b2 << 6) | current & 0b00111111;
+                yield return new((b1 << 12) | (b2 << 6) | current & 0b00111111);
             }
             else if ((current >> 3) == 0b11110)
             {
@@ -555,7 +329,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                yield return (b1 << 18) | (b2 << 12) | (b3 << 6) | current & 0b00111111;
+                yield return new((b1 << 18) | (b2 << 12) | (b3 << 6) | current & 0b00111111);
             }
         }
     }
@@ -565,7 +339,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     /// </summary>
     /// <param name="source">The UTF-16 sequence.</param>
     /// <returns>The sequence of code points.</returns>
-    public static IEnumerable<CodePoint> DecodeUtf16(IEnumerable<char>? source)
+    public static IEnumerable<Rune> DecodeUtf16(IEnumerable<char>? source)
     {
         if (source is null)
             yield break;
@@ -578,7 +352,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
             if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
             {
-                yield return high;
+                yield return new(high);
                 continue;
             }
 
@@ -587,7 +361,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
             var low = (int)enumerator.Current;
 
-            yield return (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+            yield return new((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
         }
     }
 
@@ -597,7 +371,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     /// <param name="source">The string to decode.</param>
     /// <returns>The sequence of code points.</returns>
     /// <remarks>This method leverages <see cref="CharEnumerator"/> for better performance than <see cref="DecodeUtf16(IEnumerable{char})"/>.</remarks>
-    public static IEnumerable<CodePoint> DecodeUtf16(string? source)
+    public static IEnumerable<Rune> DecodeUtf16(string? source)
     {
         if (source is null)
             yield break;
@@ -610,7 +384,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
             if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
             {
-                yield return high;
+                yield return new(high);
                 continue;
             }
 
@@ -619,7 +393,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
             var low = (int)enumerator.Current;
 
-            yield return (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+            yield return new((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
         }
     }
 
@@ -628,7 +402,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
     /// <returns>The UTF-16 sequence.</returns>
-    public static IEnumerable<char> EncodeUtf16(IEnumerable<CodePoint>? source)
+    public static IEnumerable<char> EncodeUtf16(IEnumerable<Rune>? source)
     {
         if (source is null)
             yield break;
@@ -637,7 +411,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
         while (enumerator.MoveNext())
         {
-            var value = enumerator.Current.Value;
+            var value = (uint)enumerator.Current.Value;
 
             if (value <= 0xD7FF || (value >= 0xE000 && value <= 0xFFFF))
             {
@@ -659,7 +433,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     /// </summary>
     /// <param name="source">The sequence of code points.</param>
     /// <returns>The sequence of bytes.</returns>
-    public static IEnumerable<byte> EncodeUtf8(IEnumerable<CodePoint>? source)
+    public static IEnumerable<byte> EncodeUtf8(IEnumerable<Rune>? source)
     {
         if (source is null)
             yield break;
@@ -668,7 +442,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
 
         while (enumerator.MoveNext())
         {
-            var current = enumerator.Current.Value;
+            var current = (uint)enumerator.Current.Value;
 
             if (current <= 0x7F)
                 yield return (byte)current;
@@ -694,12 +468,12 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
     }
 
     /// <summary>
-    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/> without allocating heap memory.
+    /// Gets an enumerable for <see cref="Rune"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/> without allocating heap memory.
     /// </summary>
     public static Utf8DecoderEnumerable GetEnumerable(ReadOnlySpan<byte> source) => new(source);
 
     /// <summary>
-    /// Gets an enumerable for <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
+    /// Gets an enumerable for <see cref="Rune"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
     /// </summary>
     public static Utf16DecoderEnumerable GetEnumerable(ReadOnlySpan<char> source) => new(source);
 
@@ -714,7 +488,7 @@ public readonly struct CodePoint(uint value) : IEquatable<CodePoint>, IComparabl
         var enumerable = new Utf16DecoderEnumerable(source);
         var bytesNeeded = 0;
         foreach (var codePoint in enumerable)
-            checked { bytesNeeded += codePoint.Utf8ByteCount; }
+            checked { bytesNeeded += codePoint.Utf8SequenceLength; }
 
         return bytesNeeded;
     }

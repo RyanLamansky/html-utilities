@@ -1,16 +1,18 @@
-﻿namespace HtmlUtilities;
+﻿using System.Text;
+
+namespace HtmlUtilities;
 
 /// <summary>
-/// Enumerates <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/> without allocating heap memory.
+/// Enumerates <see cref="Rune"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="byte"/> without allocating heap memory.
 /// </summary>
 public ref struct Utf8DecoderEnumerator
 {
     private ReadOnlySpan<byte>.Enumerator enumerator;
 
     /// <summary>
-    /// The current <see cref="CodePoint"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
+    /// The current <see cref="Rune"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
     /// </summary>
-    public CodePoint Current { readonly get; private set; }
+    public Rune Current { readonly get; private set; }
 
     internal Utf8DecoderEnumerator(ReadOnlySpan<byte> source)
     {
@@ -19,7 +21,7 @@ public ref struct Utf8DecoderEnumerator
     }
 
     /// <summary>
-    /// Reads the next <see cref="CodePoint"/> from the source.
+    /// Reads the next <see cref="Rune"/> from the source.
     /// </summary>
     /// <returns>True if a value was found, false if the end of the source has been reached.</returns>
     public bool MoveNext()
@@ -30,7 +32,7 @@ public ref struct Utf8DecoderEnumerator
 
             if (current <= 0x7f)
             {
-                Current = current;
+                Current = new(current);
                 return true;
             }
 
@@ -51,7 +53,7 @@ public ref struct Utf8DecoderEnumerator
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                Current = (b1 << 6) | current & 0b00111111;
+                Current = new((b1 << 6) | current & 0b00111111);
             }
             else if ((current >> 4) == 0b1110)
             {
@@ -63,7 +65,7 @@ public ref struct Utf8DecoderEnumerator
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                Current = (b1 << 12) | (b2 << 6) | current & 0b00111111;
+                Current = new((b1 << 12) | (b2 << 6) | current & 0b00111111);
             }
             else if ((current >> 3) == 0b11110)
             {
@@ -79,7 +81,7 @@ public ref struct Utf8DecoderEnumerator
                 if (!Next(enumerator, ref current))
                     continue; // Invalid sequence.
 
-                Current = (b1 << 18) | (b2 << 12) | (b3 << 6) | current & 0b00111111;
+                Current = new((b1 << 18) | (b2 << 12) | (b3 << 6) | current & 0b00111111);
             }
 
             return true;

@@ -43,14 +43,14 @@ public readonly struct ValidatedElementName : IEquatable<ValidatedElementName>
         if (name.Length == 6 && name[0] is 'S' or 's' && name[1] is 'C' or 'c' && name[2] is 'R' or 'r' && name[3] is 'I' or 'i' && name[4] is 'P' or 'p' && name[5] is 'T' or 't')
             throw new ArgumentException("Use ValidatedScript or WriteScript for script elements.", nameof(name));
 
-        var enumerator = CodePoint.GetEnumerable(name).GetEnumerator();
+        var enumerator = RuneSmith.GetEnumerable(name).GetEnumerator();
 
         if (!enumerator.MoveNext())
             throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
 
         var codePoint = enumerator.Current;
 
-        if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlpha) == 0)
+        if ((enumerator.Current.InfraCategories() & CodePointInfraCategory.AsciiAlpha) == 0)
             throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
 
         codePoint.WriteUtf8To(ref writer);
@@ -58,7 +58,7 @@ public readonly struct ValidatedElementName : IEquatable<ValidatedElementName>
         while (enumerator.MoveNext())
         {
             codePoint = enumerator.Current;
-            if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiAlphanumeric) == 0)
+            if ((codePoint.InfraCategories() & CodePointInfraCategory.AsciiAlphanumeric) == 0)
                 throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
 
             codePoint.WriteUtf8To(ref writer);
@@ -99,14 +99,14 @@ public readonly struct ValidatedElementName : IEquatable<ValidatedElementName>
         if (name.Length == 6 && (char)name[0] is 'S' or 's' && (char)name[1] is 'C' or 'c' && (char)name[2] is 'R' or 'r' && (char)name[3] is 'I' or 'i' && (char)name[4] is 'P' or 'p' && (char)name[5] is 'T' or 't')
             throw new ArgumentException("Use ValidatedScript or WriteScript for script elements.", nameof(name));
 
-        var enumerator = CodePoint.GetEnumerable(name).GetEnumerator();
+        var enumerator = RuneSmith.GetEnumerable(name).GetEnumerator();
 
         if (!enumerator.MoveNext())
             throw new ArgumentException("Element name cannot be an empty string.", nameof(name));
 
         var codePoint = enumerator.Current;
 
-        if ((enumerator.Current.InfraCategories & CodePointInfraCategory.AsciiAlpha) == 0)
+        if ((enumerator.Current.InfraCategories() & CodePointInfraCategory.AsciiAlpha) == 0)
             throw new ArgumentException("Element names must have an ASCII alpha as the first character.", nameof(name));
 
         codePoint.WriteUtf8To(ref writer);
@@ -114,7 +114,7 @@ public readonly struct ValidatedElementName : IEquatable<ValidatedElementName>
         while (enumerator.MoveNext())
         {
             codePoint = enumerator.Current;
-            if ((codePoint.InfraCategories & CodePointInfraCategory.AsciiAlphanumeric) == 0)
+            if ((codePoint.InfraCategories() & CodePointInfraCategory.AsciiAlphanumeric) == 0)
                 throw new ArgumentException("Element names cannot have characters outside the range of ASCII alpha or digits.", nameof(name));
 
             codePoint.WriteUtf8To(ref writer);

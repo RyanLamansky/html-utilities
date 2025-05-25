@@ -1,18 +1,19 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace HtmlUtilities;
 
 /// <summary>
-/// Enumerates <see cref="CodePoint"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
+/// Enumerates <see cref="Rune"/>s from a <see cref="ReadOnlySpan{T}"/> of type <see cref="char"/> without allocating heap memory.
 /// </summary>
 public ref struct Utf16DecoderEnumerator
 {
     private ReadOnlySpan<char>.Enumerator enumerator;
 
     /// <summary>
-    /// The current <see cref="CodePoint"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
+    /// The current <see cref="Rune"/> value. Not valid until <see cref="MoveNext"/> has been called at least once.
     /// </summary>
-    public CodePoint Current { readonly get; private set; }
+    public Rune Current { readonly get; private set; }
 
     internal Utf16DecoderEnumerator(ReadOnlySpan<char> source)
     {
@@ -21,7 +22,7 @@ public ref struct Utf16DecoderEnumerator
     }
 
     /// <summary>
-    /// Reads the next <see cref="CodePoint"/> from the source.
+    /// Reads the next <see cref="Rune"/> from the source.
     /// </summary>
     /// <returns>True if a value was found, false if the end of the source has been reached.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,7 +35,7 @@ public ref struct Utf16DecoderEnumerator
 
         if (high <= 0xD7FF || (high >= 0xE000 && high <= 0xFFFF))
         {
-            Current = high;
+            Current = new(high);
             return true;
         }
         else if (!enumerator.MoveNext())
@@ -43,7 +44,7 @@ public ref struct Utf16DecoderEnumerator
         }
 
         var low = (int)enumerator.Current;
-        Current = (high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000;
+        Current = new((high - 0xD800) * 0x400 + (low - 0xDC00) + 0x10000);
 
         return true;
     }

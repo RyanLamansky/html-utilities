@@ -36,9 +36,9 @@ public readonly struct ValidatedText : IEquatable<ValidatedText>
         if (text.IsEmpty)
             return;
 
-        foreach (var codePoint in CodePoint.GetEnumerable(text))
+        foreach (var codePoint in RuneSmith.GetEnumerable(text))
         {
-            var categories = codePoint.InfraCategories;
+            var categories = codePoint.InfraCategories();
             if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 &&
                 (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control | CodePointInfraCategory.NonCharacter)) != 0)
                 continue;
@@ -82,9 +82,9 @@ public readonly struct ValidatedText : IEquatable<ValidatedText>
         if (text.IsEmpty)
             return;
 
-        foreach (var codePoint in CodePoint.GetEnumerable(text))
+        foreach (var codePoint in RuneSmith.GetEnumerable(text))
         {
-            var categories = codePoint.InfraCategories;
+            var categories = codePoint.InfraCategories();
             if ((categories & CodePointInfraCategory.AsciiWhitespace) == 0 &&
                 (categories & (CodePointInfraCategory.Surrogate | CodePointInfraCategory.Control | CodePointInfraCategory.NonCharacter)) != 0)
                 continue;
